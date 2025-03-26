@@ -1,0 +1,93 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String?
+  email        String    @unique
+  accessToken  String
+  refreshToken String
+  tokenExpiry  DateTime
+  picture      String?
+  sources      Source[]
+  extracts     Extract[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+}
+
+model Extract {
+  id                     Int              @id @default(autoincrement())
+  date                   DateTime
+  userId                 Int
+  user                   User             @relation(fields: [userId], references: [id])
+  emailSubject           String?
+  body                   String?
+  amountExtract          Float?
+  payeeExtract           String?
+  categoryExtract        Category?
+  transactionTypeExtract TransactionType?
+  emailId                String?          @unique
+  sourceId               Int
+  source                 Source           @relation(fields: [sourceId], references: [id])
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime?        @updatedAt
+}
+
+model Source {
+  id                Int              @id @default(autoincrement())
+  sourceName        String
+  sourceType        SourceType       @default(MAIL)
+  query             String?
+  user              User             @relation(fields: [userId], references: [id])
+  userId            Int
+  amountRegex       String?
+  amountRegexBackup String?
+  payeeRegex        String?
+  payeeRegexBackup  String?
+  defaultCategory   Category?
+  defaultType       TransactionType?
+  rulePriority      Int              @default(0)
+  extracts          Extract[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime?        @updatedAt
+}
+
+enum SourceType {
+  MAIL
+  API
+}
+
+enum Category {
+  FOOD_AND_DRINKS
+  SHOPPING
+  GROOMING
+  HEALTH
+  INVESTMENT
+  TRAVEL
+  ENTERTAINMENT
+  OTHERS
+  GROCERIES
+  FUEL
+  BILLS
+  LEARNING
+  LEND_SPLITWISE
+  REFUND
+  SALARY
+  REDEEM
+  SELF_TRANSFER
+  SIDE_INCOME
+  CREDIT_CARD_BILL
+  JUNK
+}
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
