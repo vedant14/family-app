@@ -1,22 +1,5 @@
-import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSparkles,
-  IconSearch,
-  IconSettings,
-  IconUsers,
-} from "@tabler/icons-react";
-
+import { IconInnerShadowTop } from "@tabler/icons-react";
+import { Link } from "react-router";
 import { NavMain } from "~/components/nav-main";
 import { NavUser } from "~/components/nav-user";
 import {
@@ -29,40 +12,9 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: IconDashboard,
-    },
-
-    {
-      title: "Ledger",
-      url: "/ledger",
-      icon: IconListDetails,
-    },
-    {
-      title: "AI",
-      url: "/ai",
-      icon: IconSparkles,
-    },
-    {
-      title: "Family",
-      url: "/family",
-      icon: IconUsers,
-    },
-    {
-      title: "Sources",
-      url: "/sources",
-      icon: IconFolder,
-    },
-  ],
-};
-
-export function AppSidebar(props) {
+export function AppSidebar({ data, activeNavItem }) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -70,16 +22,16 @@ export function AppSidebar(props) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} activeNavItem={activeNavItem} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
