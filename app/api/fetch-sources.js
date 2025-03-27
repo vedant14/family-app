@@ -1,4 +1,5 @@
-import prisma from "utils/prismaClient";
+import prisma from "~/utils/prismaClient";
+
 export const loader = async () => {
   try {
     const sources = await prisma.source.findMany({

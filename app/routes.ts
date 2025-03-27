@@ -6,5 +6,7 @@ export default [
     route("test", "./routes/home.jsx"),
   ]),
   route("login", "./routes/auth/login.jsx"),
-  route("api/fetch-sources", "./api/fetch-sources.jsx"),
+  route("api/fetch-sources", "./api/fetch-sources.js"),
+  route("api/create-user", "./api/create-user.js"),
+  route("api/fetch-token", "./api/fetch-token.js"),
 ] satisfies RouteConfig;
