@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { classNames } from "~/utils/helperFunctions";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -7,9 +7,17 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useAuthStore } from "~/utils/store";
 import axios from "axios";
+import { useEffect } from "react";
 export default function Login({ className, ...props }) {
   const setUser = useAuthStore((state) => state.setUser);
+  const navigate = useNavigate(); // Initialize navigation
   const user = useAuthStore((state) => state.user);
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user]);
+
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
       const tokens = await axios.post("/api/fetch-token", {
@@ -19,7 +27,7 @@ export default function Login({ className, ...props }) {
     },
     flow: "auth-code",
     scope:
-    "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events.owned",
+      "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events.owned",
   });
 
   return (
@@ -52,12 +60,12 @@ export default function Login({ className, ...props }) {
                 <div className="grid gap-2">
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <a
+                    <Link
                       href="#"
                       className="ml-auto text-sm underline-offset-2 hover:underline"
                     >
                       Forgot your password?
-                    </a>
+                    </Link>
                   </div>
                   <Input id="password" type="password" required />
                 </div>

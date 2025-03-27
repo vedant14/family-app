@@ -8,8 +8,7 @@ const useAuthStore = create(
       setUser: (user) => set({ user }),
     }),
     {
-      name: "user-storage", // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+      name: "user-auth", // name of the item in the storage (must be unique)
     }
   )
 );

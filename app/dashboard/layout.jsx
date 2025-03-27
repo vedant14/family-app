@@ -1,8 +1,31 @@
-import { Outlet } from "react-router";
+import { useEffect } from "react";
+import { Outlet, useNavigate } from "react-router";
 import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
+import { useAuthStore } from "~/utils/store";
+import { Skeleton } from "~/components/ui/skeleton";
+
 export default function DashboardLayout() {
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading); // Add loading state if needed
+
+  useEffect(() => {
+    if (user === null) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  if (isLoading || user === undefined) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-6 w-40 ml-4" />
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider
       style={{
