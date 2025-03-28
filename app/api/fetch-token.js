@@ -1,5 +1,6 @@
 import axios from "axios";
-import { findUserByEmail } from "~/utils/helperFunctions";
+import { findUserByEmail } from "~/utils/authHelpers";
+
 import prisma from "~/utils/prismaClient";
 
 export const action = async ({ request }) => {

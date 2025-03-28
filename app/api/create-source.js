@@ -1,5 +1,5 @@
 import { verifyIdToken } from "~/utils/authHelpers";
-import { findUserByEmail } from "~/utils/helperFunctions";
+import { findUserByEmail } from "~/utils/authHelpers";
 import prisma from "~/utils/prismaClient";
 
 export const action = async ({ request }) => {
@@ -55,7 +55,6 @@ export const action = async ({ request }) => {
     }
 
     const query = queryParts.join(" ");
-    
 
     if (!user) {
       return new Response(JSON.stringify({ error: "User not found" }), {
