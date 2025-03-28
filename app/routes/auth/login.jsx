@@ -6,27 +6,25 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-// import { useAuthStore } from "~/utils/store";
-// import { classNames } from "~/utils/helperFunctions";
+import { useAuthStore } from "~/utils/store";
+import clsx from "clsx";
 export default function Login({ className, ...props }) {
-  // const setUser = useAuthStore((state) => state.setUser);
+  const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate(); // Initialize navigation
-  // const user = useAuthStore((state) => state.user);
-  // useEffect(() => {
-  //   if (user) {
-  //     navigate("/");
-  //   }
-  // }, [user]);
+  const user = useAuthStore((state) => state.user);
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user]);
 
-  
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
       const tokens = await axios.post("/api/fetch-token", {
         code: codeResponse.code,
       });
-      console.log("VEDANT");
-      // navigate("/");
-      // createUser(tokens.data, setUser);
+      navigate("/");
+      createUser(tokens.data, setUser);
     },
     flow: "auth-code",
     scope:
@@ -35,7 +33,7 @@ export default function Login({ className, ...props }) {
 
   return (
     <div
-      className={classNames(
+      className={clsx(
         "flex flex-col gap-6 bg-gray-100 h-screen",
         className
       )}
@@ -128,8 +126,4 @@ const createUser = async (tokens, setUser) => {
   } catch (error) {
     console.error("Error creating user:", error);
   }
-};
-
-const classNames = (...classes) => {
-  return classes.filter(Boolean).join(" ");
 };
