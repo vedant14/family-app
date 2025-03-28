@@ -52,25 +52,25 @@ export default function DashboardLayout({}) {
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
 
-  useEffect(() => {
-    if (!user) {
-      const timeout = setTimeout(() => {
-        // logout(); // Call your logout function
-        navigate("/login");
-      }, 2000);
+  // useEffect(() => {
+  //   if (!user) {
+  //     const timeout = setTimeout(() => {
+  //       // logout(); // Call your logout function
+  //       navigate("/login");
+  //     }, 2000);
 
-      return () => clearTimeout(timeout);
-    }
-  }, [user]);
+  //     return () => clearTimeout(timeout);
+  //   }
+  // }, [user]);
 
-  if (isLoading || user === undefined) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <Skeleton className="h-6 w-40 ml-4" />
-      </div>
-    );
-  }
+  // if (isLoading || user === undefined) {
+  //   return (
+  //     <div className="flex h-screen items-center justify-center">
+  //       <Skeleton className="h-10 w-10 rounded-full" />
+  //       <Skeleton className="h-6 w-40 ml-4" />
+  //     </div>
+  //   );
+  // }
 
   const activeNavItem = data.navMain.find(
     (item) => location.pathname === item.url

@@ -27,6 +27,7 @@ import { useAuthStore } from "~/utils/store";
 export function NavUser() {
   const { isMobile } = useSidebar();
   const user = useAuthStore((state) => state.user);
+  if (!user) return;
   return (
     <SidebarMenu>
       <SidebarMenuItem>
