@@ -7,14 +7,29 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import prisma from "~/utils/prismaClient";
 
-export async function clientLoader({}) {
-  const res = await fetch(`/api/fetch-sources`);
-  const sources = await res.json();
+export async function loader({}) {
+  const sources = await prisma.source.findMany({
+    select: {
+      id: true,
+      sourceName: true,
+      sourceType: true,
+      query: true,
+      payeeRegex: true,
+      payeeRegexBackup: true,
+      amountRegex: true,
+      amountRegexBackup: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
   return sources;
 }
 
-// HydrateFallback is rendered while the client loader is running
 export function HydrateFallback() {
   return <div>Loading...</div>;
 }

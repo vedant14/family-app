@@ -13,6 +13,7 @@ model User {
   name         String?
   email        String    @unique
   accessToken  String
+  idToken      String
   refreshToken String
   tokenExpiry  DateTime
   picture      String?

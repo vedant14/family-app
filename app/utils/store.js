@@ -13,4 +13,9 @@ const useAuthStore = create(
   )
 );
 
-export { useAuthStore };
+const useDialogStore = create((set) => ({
+  open: false,
+  toggleOpen: () => set((state) => ({ open: !state.open })), // Fix here
+}));
+
+export { useAuthStore, useDialogStore };

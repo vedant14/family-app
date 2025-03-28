@@ -40,14 +40,12 @@ export const action = async ({ request }) => {
     } else {
       console.log("Refresh access token using stored refresh token");
       const user = await findUserByEmail(email);
-
       if (!user || !user.refreshToken) {
         return new Response(
           JSON.stringify({ error: "User not found or refresh token missing" }),
           { status: 404, headers: { "Content-Type": "application/json" } }
         );
       }
-
       response = await axios.post(
         "https://oauth2.googleapis.com/token",
         new URLSearchParams({

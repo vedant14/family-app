@@ -23,6 +23,7 @@ export default function Login({ className, ...props }) {
       const tokens = await axios.post("/api/fetch-token", {
         code: codeResponse.code,
       });
+      navigate("/");
       createUser(tokens.data, setUser);
     },
     flow: "auth-code",

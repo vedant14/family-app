@@ -61,10 +61,15 @@ export default function DashboardLayout({}) {
   const isLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
-    if (user === null) {
-      navigate("/login");
+    if (!user) {
+      const timeout = setTimeout(() => {
+        // logout(); // Call your logout function
+        navigate("/login");
+      }, 2000);
+
+      return () => clearTimeout(timeout);
     }
-  }, [user, navigate]);
+  }, [user]);
 
   if (isLoading || user === undefined) {
     return (
@@ -75,7 +80,6 @@ export default function DashboardLayout({}) {
     );
   }
 
-  // Find active navigation title
   const activeNavItem = data.navMain.find(
     (item) => location.pathname === item.url
   );
@@ -90,7 +94,7 @@ export default function DashboardLayout({}) {
     >
       <AppSidebar variant="inset" data={data} activeNavItem={activeNavItem} />
       <SidebarInset>
-        <SiteHeader title={activeTitle} /> {/* Pass active title here */}
+        <SiteHeader title={activeTitle} />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 md:px-6">

@@ -15,6 +15,7 @@ export const action = async ({ request }) => {
         accessToken: access_token,
         picture: profileData.picture,
         refreshToken: refresh_token,
+        idToken: id_token,
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
       create: {
@@ -22,6 +23,7 @@ export const action = async ({ request }) => {
         email: profileData.email,
         picture: profileData.picture,
         accessToken: access_token,
+        idToken: id_token,
         refreshToken: refresh_token,
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
