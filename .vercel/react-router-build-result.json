@@ -1,0 +1,161 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "root": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/dashboard/index": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/home": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/dashboard/sources": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth/login": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "api/create-user": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "api/fetch-token": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "api/create-source": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "app/root.tsx",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "dashboard/layout": {
+        "id": "dashboard/layout",
+        "parentId": "root",
+        "file": "app/dashboard/layout.jsx",
+        "config": {}
+      },
+      "routes/dashboard/index": {
+        "id": "routes/dashboard/index",
+        "parentId": "dashboard/layout",
+        "file": "app/routes/dashboard/index.jsx",
+        "index": true,
+        "config": {}
+      },
+      "routes/home": {
+        "id": "routes/home",
+        "parentId": "dashboard/layout",
+        "file": "app/routes/home.jsx",
+        "path": "test",
+        "config": {}
+      },
+      "routes/dashboard/sources": {
+        "id": "routes/dashboard/sources",
+        "parentId": "dashboard/layout",
+        "file": "app/routes/dashboard/sources.jsx",
+        "path": "sources",
+        "config": {}
+      },
+      "routes/auth/login": {
+        "id": "routes/auth/login",
+        "parentId": "root",
+        "file": "app/routes/auth/login.jsx",
+        "path": "login",
+        "config": {}
+      },
+      "api/create-user": {
+        "id": "api/create-user",
+        "parentId": "root",
+        "file": "app/api/create-user.js",
+        "path": "api/create-user",
+        "config": {}
+      },
+      "api/fetch-token": {
+        "id": "api/fetch-token",
+        "parentId": "root",
+        "file": "app/api/fetch-token.js",
+        "path": "api/fetch-token",
+        "config": {}
+      },
+      "api/create-source": {
+        "id": "api/create-source",
+        "parentId": "root",
+        "file": "app/api/create-source.js",
+        "path": "api/create-source",
+        "config": {}
+      }
+    }
+  },
+  "reactRouterConfig": {
+    "appDirectory": "/Users/vedantlohbare/Documents/Codes/my-app/app",
+    "basename": "/",
+    "buildDirectory": "/Users/vedantlohbare/Documents/Codes/my-app/build",
+    "future": {
+      "unstable_middleware": false,
+      "unstable_optimizeDeps": false,
+      "unstable_splitRouteModules": false,
+      "unstable_viteEnvironmentApi": false
+    },
+    "routes": {
+      "root": {
+        "path": "",
+        "id": "root",
+        "file": "root.tsx"
+      },
+      "dashboard/layout": {
+        "id": "dashboard/layout",
+        "parentId": "root",
+        "file": "./dashboard/layout.jsx"
+      },
+      "routes/dashboard/index": {
+        "id": "routes/dashboard/index",
+        "parentId": "dashboard/layout",
+        "file": "routes/dashboard/index.jsx",
+        "index": true
+      },
+      "routes/home": {
+        "id": "routes/home",
+        "parentId": "dashboard/layout",
+        "file": "./routes/home.jsx",
+        "path": "test"
+      },
+      "routes/dashboard/sources": {
+        "id": "routes/dashboard/sources",
+        "parentId": "dashboard/layout",
+        "file": "./routes/dashboard/sources.jsx",
+        "path": "sources"
+      },
+      "routes/auth/login": {
+        "id": "routes/auth/login",
+        "parentId": "root",
+        "file": "./routes/auth/login.jsx",
+        "path": "login"
+      },
+      "api/create-user": {
+        "id": "api/create-user",
+        "parentId": "root",
+        "file": "./api/create-user.js",
+        "path": "api/create-user"
+      },
+      "api/fetch-token": {
+        "id": "api/fetch-token",
+        "parentId": "root",
+        "file": "./api/fetch-token.js",
+        "path": "api/fetch-token"
+      },
+      "api/create-source": {
+        "id": "api/create-source",
+        "parentId": "root",
+        "file": "./api/create-source.js",
+        "path": "api/create-source"
+      }
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
