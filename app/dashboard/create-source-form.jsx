@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { useRevalidator } from "react-router";
+import { Form, useRevalidator } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   DialogContent,
@@ -139,50 +139,48 @@ export function SourceForm() {
           Criteria for adding a new transaction
         </DialogDescription>
       </DialogHeader>
-      <div className="grid gap-4 py-4">
-        {formLayout.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-2 gap-4">
-            {row.fields.map((field) => (
-              <div
-                key={field.id}
-                className="grid grid-cols-5 items-center gap-4"
-              >
-                <Label htmlFor={field.id} className="text-left col-span-2">
-                  {field.label}
-                </Label>
+      <Form method="post">
+        <div className="grid gap-4 py-4">
+          {formLayout.map((row, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-2 gap-4">
+              {row.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className="grid grid-cols-5 items-center gap-4"
+                >
+                  <Label htmlFor={field.id} className="text-left col-span-2">
+                    {field.label}
+                  </Label>
 
-                {field.type === "select" ? (
-                  <select
-                    id={field.id}
-                    value={formData[field.id]}
-                    onChange={(e) => handleChange(field.id, e.target.value)}
-                    className="col-span-3 border border-gray-300 rounded p-2"
-                  >
-                    {field.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    id={field.id}
-                    type={field.type}
-                    value={formData[field.id]}
-                    onChange={(e) => handleChange(field.id, e.target.value)}
-                    className="col-span-3"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-      <DialogFooter>
-        <Button type="submit" onClick={() => handleFormSubmit()}>
-          Create Source
-        </Button>
-      </DialogFooter>
+                  {field.type === "select" ? (
+                    <select
+                      id={field.id}
+                      name={field.id}
+                      className="col-span-3 border border-gray-300 rounded p-2"
+                    >
+                      {field.options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      id={field.id}
+                      name={field.id}
+                      type={field.type}
+                      className="col-span-3"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button type="submit">Create Source</Button>
+        </DialogFooter>
+      </Form>
     </DialogContent>
   );
 }

@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
 import { DialogTrigger } from "./ui/dialog";
-import { SourceForm } from "~/dashboard/forms";
+import { SourceForm } from "~/dashboard/create-source-form";
 import { useDialogStore } from "~/utils/store";
 
 export function NavMain({ items, activeNavItem }) {
@@ -20,24 +20,6 @@ export function NavMain({ items, activeNavItem }) {
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        {activeNavItem.actionTitle && (
-          <SidebarMenu>
-            <SidebarMenuItem className="flex items-center gap-2">
-              <Dialog open={open}>
-                {activeNavItem.onAction}
-
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-                  onClick={toggleOpen}
-                >
-                  <IconCirclePlusFilled />
-                  <span>{activeNavItem.actionTitle}</span>
-                </SidebarMenuButton>
-              </Dialog>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>

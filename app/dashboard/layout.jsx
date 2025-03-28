@@ -13,7 +13,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { Dialog, DialogTrigger } from "~/components/ui/dialog";
-import { SourceForm } from "./forms";
+import { SourceForm } from "./create-source-form";
 import { Button } from "~/components/ui/button";
 
 const data = {
@@ -26,29 +26,21 @@ const data = {
     {
       title: "Ledger",
       url: "/ledger",
-      actionTitle: "",
-      onAction: <SourceForm />,
       icon: IconReceipt,
     },
     {
       title: "AI",
       url: "/ai",
-      actionTitle: "",
-      onAction: <SourceForm />,
       icon: IconSparkles,
     },
     {
       title: "Family",
       url: "/family",
-      actionTitle: "",
-      onAction: <SourceForm />,
       icon: IconUsers,
     },
     {
       title: "Sources",
       url: "/sources",
-      actionTitle: "Add Source",
-      onAction: <SourceForm />,
       icon: IconFolder,
     },
   ],
