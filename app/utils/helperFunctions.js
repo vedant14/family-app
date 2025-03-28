@@ -1,4 +1,4 @@
-import { findUserByEmail } from "~/utils/helperFunctions";
+import prisma from "~/utils/prismaClient";
 
 export const classNames = (...classes) => {
   return classes.filter(Boolean).join(" ");
