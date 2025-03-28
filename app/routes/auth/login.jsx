@@ -1,22 +1,22 @@
+import { useEffect } from "react";
+import axios from "axios";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
-import { classNames } from "~/utils/helperFunctions";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useAuthStore } from "~/utils/store";
-import axios from "axios";
-import { useEffect } from "react";
+import { classNames } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
   const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate(); // Initialize navigation
-  const user = useAuthStore((state) => state.user);
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user]);
+  // const user = useAuthStore((state) => state.user);
+  // useEffect(() => {
+  //   if (user) {
+  //     navigate("/");
+  //   }
+  // }, [user]);
 
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
