@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import axios from "axios";
-// import { useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -18,22 +18,20 @@ export default function Login({ className, ...props }) {
   //   }
   // }, [user]);
 
-  const login = () => {
-    console.log("VEDANT");
-  };
-  // const login = useGoogleLogin({
-  //   onSuccess: async (codeResponse) => {
-  //     const tokens = await axios.post("/api/fetch-token", {
-  //       code: codeResponse.code,
-  //     });
-  //     console.log("VEDANT");
-  //     // navigate("/");
-  //     // createUser(tokens.data, setUser);
-  //   },
-  //   flow: "auth-code",
-  //   scope:
-  //     "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events.owned",
-  // });
+  
+  const login = useGoogleLogin({
+    onSuccess: async (codeResponse) => {
+      const tokens = await axios.post("/api/fetch-token", {
+        code: codeResponse.code,
+      });
+      console.log("VEDANT");
+      // navigate("/");
+      // createUser(tokens.data, setUser);
+    },
+    flow: "auth-code",
+    scope:
+      "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events.owned",
+  });
 
   return (
     <div
