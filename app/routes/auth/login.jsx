@@ -6,10 +6,10 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useAuthStore } from "~/utils/store";
+// import { useAuthStore } from "~/utils/store";
 import { classNames } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
-  const setUser = useAuthStore((state) => state.setUser);
+  // const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate(); // Initialize navigation
   // const user = useAuthStore((state) => state.user);
   // useEffect(() => {
@@ -23,8 +23,9 @@ export default function Login({ className, ...props }) {
       const tokens = await axios.post("/api/fetch-token", {
         code: codeResponse.code,
       });
-      navigate("/");
-      createUser(tokens.data, setUser);
+      console.log("VEDANT");
+      // navigate("/");
+      // createUser(tokens.data, setUser);
     },
     flow: "auth-code",
     scope:

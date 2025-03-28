@@ -1,5 +1,5 @@
 import axios from "axios";
-import { findUserByEmail, updateAccessToken } from "~/utils/helperFunctions";
+import { findUserByEmail } from "~/utils/helperFunctions";
 
 export const action = async ({ request }) => {
   try {
@@ -87,5 +87,21 @@ export const action = async ({ request }) => {
         headers: { "Content-Type": "application/json" },
       }
     );
+  }
+};
+
+const updateAccessToken = async (email, access_token, expires_in) => {
+  try {
+    const user = await prisma.user.update({
+      where: { email },
+      data: {
+        accessToken: access_token,
+        tokenExpiry: new Date(Date.now() + expires_in * 1000),
+      },
+    });
+    return user; // Return the updated user if needed
+  } catch (error) {
+    console.error("Error updating access token:", error);
+    throw new Error("Failed to update access token");
   }
 };
