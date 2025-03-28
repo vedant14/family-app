@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import axios from "axios";
-import { useGoogleLogin } from "@react-oauth/google";
+// import { useGoogleLogin } from "@react-oauth/google";
 import { Link, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 // import { useAuthStore } from "~/utils/store";
-import { classNames } from "~/utils/helperFunctions";
+// import { classNames } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
   // const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate(); // Initialize navigation
@@ -130,4 +130,8 @@ const createUser = async (tokens, setUser) => {
   } catch (error) {
     console.error("Error creating user:", error);
   }
+};
+
+const classNames = (...classes) => {
+  return classes.filter(Boolean).join(" ");
 };
