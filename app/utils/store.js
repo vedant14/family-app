@@ -5,6 +5,7 @@ const useAuthStore = create(
   persist(
     (set) => ({
       user: undefined,
+      logout: () => set({ user: undefined }), // Fix: Correctly set user to undefined
       setUser: (user) => set({ user }),
     }),
     {

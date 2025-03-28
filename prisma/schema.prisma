@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,31 +7,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Team {
+  id       Int        @id @default(autoincrement())
+  name     String?
+  users    TeamUser[] // Many-to-many relationship via TeamUser
+  Category Category[]
+}
+
 model User {
-  id           Int       @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   name         String?
-  email        String    @unique
+  email        String     @unique
   accessToken  String
   idToken      String
   refreshToken String
   tokenExpiry  DateTime
   picture      String?
-  sources      Source[]
-  extracts     Extract[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  teams        TeamUser[] // Many-to-many relationship via TeamUser
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime?  @updatedAt
 }
 
-model Extract {
+model TeamUser {
+  id           Int      @id @default(autoincrement())
+  teamId       Int
+  userId       Int
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Ledger[]
+  sources      Source[]
+  @@unique([teamId, userId]) // Ensures a user can't join the same team twice
+}
+
+model Ledger {
   id                     Int              @id @default(autoincrement())
   date                   DateTime
   userId                 Int
-  user                   User             @relation(fields: [userId], references: [id])
+  user                   TeamUser         @relation(fields: [userId], references: [id])
   emailSubject           String?
   body                   String?
   amountExtract          Float?
   payeeExtract           String?
-  categoryExtract        Category?
+  categoryId             Int?
+  category               Category?        @relation(fields: [categoryId], references: [id])
   transactionTypeExtract TransactionType?
   emailId                String?          @unique
   sourceId               Int
@@ -46,16 +63,17 @@ model Source {
   sourceName        String
   sourceType        SourceType       @default(MAIL)
   query             String?
-  user              User             @relation(fields: [userId], references: [id])
+  user              TeamUser         @relation(fields: [userId], references: [id])
   userId            Int
   amountRegex       String?
   amountRegexBackup String?
   payeeRegex        String?
   payeeRegexBackup  String?
-  defaultCategory   Category?
+  categoryId        Int?
+  defaultCategory   Category?        @relation(fields: [categoryId], references: [id])
   defaultType       TransactionType?
   rulePriority      Int              @default(0)
-  extracts          Extract[]
+  extracts          Ledger[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime?        @updatedAt
 }
@@ -65,27 +83,13 @@ enum SourceType {
   API
 }
 
-enum Category {
-  FOOD_AND_DRINKS
-  SHOPPING
-  GROOMING
-  HEALTH
-  INVESTMENT
-  TRAVEL
-  ENTERTAINMENT
-  OTHERS
-  GROCERIES
-  FUEL
-  BILLS
-  LEARNING
-  LEND_SPLITWISE
-  REFUND
-  SALARY
-  REDEEM
-  SELF_TRANSFER
-  SIDE_INCOME
-  CREDIT_CARD_BILL
-  JUNK
+model Category {
+  id           Int      @id @default(autoincrement())
+  categoryName String
+  teamId       Int
+  team         Team     @relation(fields: [teamId], references: [id])
+  ledgers      Ledger[]
+  sources      Source[]
 }
 
 enum TransactionType {

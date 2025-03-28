@@ -5,6 +5,7 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
+import { useNavigate } from "react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
@@ -27,6 +28,15 @@ import { useAuthStore } from "~/utils/store";
 export function NavUser() {
   const { isMobile } = useSidebar();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    document.cookie = "user=; path=/; max-age=0";
+    logout();
+    navigate("/login");
+  };
+
   if (!user) return;
   return (
     <SidebarMenu>
@@ -80,7 +90,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

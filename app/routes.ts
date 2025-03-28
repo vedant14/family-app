@@ -4,10 +4,11 @@ export default [
   layout("./dashboard/layout.jsx", [
     index("routes/dashboard/index.jsx"),
     route("test", "./routes/home.jsx"),
+    route("ledger", "./routes/dashboard/ledger.jsx"),
     route("sources", "./routes/dashboard/sources.jsx"),
   ]),
   route("login", "./routes/auth/login.jsx"),
   route("api/create-user", "./api/create-user.js"),
   route("api/fetch-token", "./api/fetch-token.js"),
-  route("api/create-source", "./api/create-source.js"),
+  route("api/fetch-email/:sourceId", "./api/fetch-email.js"),
 ] satisfies RouteConfig;

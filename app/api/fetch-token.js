@@ -18,11 +18,7 @@ export const action = async ({ request }) => {
     const redirect_uri = process.env.GOOGLE_REDIRECT_URI;
     let response;
     if (code) {
-      console.log(
-        "Exchange authorization code for access token",
-        redirect_uri,
-        client_id
-      );
+      console.log("Exchange authorization code for access token");
       response = await axios.post(
         "https://oauth2.googleapis.com/token",
         new URLSearchParams({

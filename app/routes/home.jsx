@@ -11,6 +11,5 @@ export function HydrateFallback() {
 
 export default function Product({ loaderData }) {
   // const { name, description } = loaderData;
-  console.log(loaderData);
   return <div>VEDANT</div>;
 }

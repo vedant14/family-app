@@ -15,7 +15,7 @@ import {
 } from "~/components/ui/table";
 import { SourceForm } from "~/dashboard/create-source-form";
 import { findUserByEmail, verifyIdToken } from "~/utils/authHelpers";
-import { parseCookies } from "~/utils/helperFunctions";
+import { formatDate, parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
 
@@ -71,6 +71,7 @@ export async function action({ request }) {
       amountRegexBackup,
       payeeRegex,
       payeeRegexBackup,
+      defaultCategory,
       defaultType,
       rulePriority,
     },
@@ -79,46 +80,41 @@ export async function action({ request }) {
 }
 
 export async function loader() {
-  const sources = await prisma.source.findMany({
+  const transactions = await prisma.ledger.findMany({
     select: {
       id: true,
-      sourceName: true,
-      sourceType: true,
-      query: true,
-      payeeRegex: true,
-      payeeRegexBackup: true,
-      amountRegex: true,
-      amountRegexBackup: true,
+      date: true,
+      transactionTypeExtract: true,
+      emailId: true,
+      emailSubject: true,
+      body: true,
+      amountExtract: true,
+      payeeExtract: true,
       user: {
         select: {
           email: true,
         },
       },
+      source: {
+        select: {
+          sourceName: true,
+        },
+      },
     },
   });
-  return sources;
+  return transactions;
 }
 
 export function HydrateFallback() {
   return <div>Loading...</div>;
 }
 
-export default function Product({ loaderData, actionData }) {
-  const open = useDialogStore((state) => state.open);
-  const toggleOpen = useDialogStore((state) => state.toggleOpen);
-  useEffect(() => {
-    if (actionData) {
-      if (actionData.error) {
-        console.log(actionData.error);
-      } else {
-        toggleOpen();
-      }
-    }
-  }, [actionData]);
-  const sources = loaderData;
+export default function Product({ loaderData }) {
+  const transactions = loaderData;
+  console.log(transactions);
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      {/* <div className="flex justify-end mb-4">
         <Dialog open={open}>
           <SourceForm />
           <Button
@@ -130,38 +126,34 @@ export default function Product({ loaderData, actionData }) {
             <span>Add Source</span>
           </Button>
         </Dialog>
-      </div>
+      </div> */}
       <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader className="bg-muted sticky top-0 z-10">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Source Title</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead className="text-left">Category</TableHead>
+              <TableHead className="text-left">Amount</TableHead>
+              <TableHead className="text-left">Source Name</TableHead>
               <TableHead className="text-left">User</TableHead>
-              <TableHead className="text-left">Query</TableHead>
-              <TableHead className="text-left">Amount Regex</TableHead>
-              <TableHead className="text-left">Amount Regex Backup</TableHead>
-              <TableHead className="text-left">Payee Regex</TableHead>
-              <TableHead className="text-left">Payee Regex Backup</TableHead>
+              <TableHead className="text-left">Subject</TableHead>
               <TableHead className="text-center">...</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sources.map((source, i) => (
+            {transactions.map((item, i) => (
               <TableRow
-                key={source.id}
+                key={item.id}
                 className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
-                <TableCell>{source.id}</TableCell>
-                <TableCell>{source.sourceName}</TableCell>
-                <TableCell>{source.sourceType}</TableCell>
-                <TableCell>{source.user.email}</TableCell>
-                <TableCell>{source.query}</TableCell>
-                <TableCell>{source.payeeRegex}</TableCell>
-                <TableCell>{source.payeeRegexBackup}</TableCell>
-                <TableCell>{source.amountRegex}</TableCell>
-                <TableCell>{source.amountRegexBackup}</TableCell>
+                <TableCell>{formatDate(item.date)}</TableCell>
+                <TableCell>{item.transactionTypeExtract}</TableCell>
+                <TableCell>{item.categoryExtract}</TableCell>
+                <TableCell>{item.amountExtract}</TableCell>
+                <TableCell>{item.source.sourceName}</TableCell>
+                <TableCell>{item.user.email}</TableCell>
+                <TableCell>{item.emailSubject}</TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <a href="#" className="text-indigo-600 hover:text-indigo-900">
                     Edit

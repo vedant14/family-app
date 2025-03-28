@@ -6,11 +6,9 @@ export const action = async ({ request }) => {
     const { access_token, refresh_token, id_token, expires_in } =
       await request.json();
     const profileData = jwtDecode(id_token);
-
+    let user;
     console.log("Creating/updating user", profileData.email);
-
-    // Upsert user
-    let user = await prisma.user.upsert({
+    user = await prisma.user.upsert({
       where: { email: profileData.email },
       update: {
         name: profileData.name,
@@ -31,29 +29,6 @@ export const action = async ({ request }) => {
       },
     });
 
-    // Check if the user is part of any team
-    const existingTeamUser = await prisma.teamUser.findFirst({
-      where: { userId: user.id },
-    });
-
-    if (!existingTeamUser) {
-      console.log(`Creating a new team for ${user.email}`);
-
-      const newTeam = await prisma.team.create({
-        data: {
-          name: `${profileData.name}'s Team`,
-        },
-      });
-
-      // Link user to the new team in TeamUser
-      await prisma.teamUser.create({
-        data: {
-          teamId: newTeam.id,
-          userId: user.id,
-        },
-      });
-    }
-
     return new Response(JSON.stringify(user), {
       headers: { "Content-Type": "application/json" },
     });
@@ -63,7 +38,7 @@ export const action = async ({ request }) => {
     return new Response(
       JSON.stringify({
         error: "Authentication failed",
-        requestId: crypto.randomUUID(),
+        requestId: crypto.randomUUID(), // For error tracking
       }),
       {
         status: error.response?.status || 500,

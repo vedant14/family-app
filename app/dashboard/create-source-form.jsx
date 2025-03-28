@@ -105,32 +105,6 @@ export function SourceForm() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleFormSubmit = () => {
-    axios
-      .post("/api/create-source", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: user.idToken,
-        },
-        data: formData,
-      })
-      .then(function (response) {
-        toggleOpen();
-        setFormData(() => {
-          return formLayout.reduce((acc, row) => {
-            row.fields.forEach((field) => {
-              acc[field.id] = field.type === "select" ? field.options[0] : "";
-            });
-            return acc;
-          }, {});
-        });
-        revalidator.revalidate();
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  };
-
   return (
     <DialogContent className="!w-[800px]">
       <DialogHeader>

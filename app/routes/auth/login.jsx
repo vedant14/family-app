@@ -6,17 +6,43 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useAuthStore } from "~/utils/store";
 import clsx from "clsx";
+import { useAuthStore } from "~/utils/store";
+import { parseCookies } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
+  const navigate = useNavigate(); 
   const setUser = useAuthStore((state) => state.setUser);
-  const navigate = useNavigate(); // Initialize navigation
-  const user = useAuthStore((state) => state.user);
   useEffect(() => {
-    if (user) {
+    const cookie = document.cookie;
+    const parsedToken = parseCookies(cookie);
+    const cookieUser = parsedToken.user;
+    if (cookieUser) {
       navigate("/");
     }
-  }, [user]);
+  }, []);
+
+  const createUser = async (tokens) => {
+    try {
+      const res = await fetch("/api/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tokens),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data);
+        document.cookie = `user=${data.idToken}; path=/; max-age=${
+          60 * 60 * 24 * 7
+        }`;
+      } else {
+        console.error("Error creating user:", data.error);
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
 
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
@@ -24,7 +50,7 @@ export default function Login({ className, ...props }) {
         code: codeResponse.code,
       });
       navigate("/");
-      createUser(tokens.data, setUser);
+      createUser(tokens.data);
     },
     flow: "auth-code",
     scope:
@@ -33,10 +59,7 @@ export default function Login({ className, ...props }) {
 
   return (
     <div
-      className={clsx(
-        "flex flex-col gap-6 bg-gray-100 h-screen",
-        className
-      )}
+      className={clsx("flex flex-col gap-6 bg-gray-100 h-screen", className)}
     >
       <Card className="overflow-hidden lg:w-4xl m-auto mt-1/2 py-0">
         <CardContent className="grid p-0 md:grid-cols-2">
@@ -107,23 +130,3 @@ export default function Login({ className, ...props }) {
     </div>
   );
 }
-
-const createUser = async (tokens, setUser) => {
-  try {
-    const res = await fetch("/api/create-user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(tokens),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setUser(data);
-    } else {
-      console.error("Error creating user:", data.error);
-    }
-  } catch (error) {
-    console.error("Error creating user:", error);
-  }
-};

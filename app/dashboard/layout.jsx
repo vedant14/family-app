@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
@@ -12,65 +12,47 @@ import {
   IconCardboards,
   IconUsers,
 } from "@tabler/icons-react";
-import { Dialog, DialogTrigger } from "~/components/ui/dialog";
-import { SourceForm } from "./create-source-form";
-import { Button } from "~/components/ui/button";
+import { parseCookies } from "~/utils/helperFunctions";
 
 const data = {
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: IconCardboards,
-    },
-    {
-      title: "Ledger",
-      url: "/ledger",
-      icon: IconReceipt,
-    },
-    {
-      title: "AI",
-      url: "/ai",
-      icon: IconSparkles,
-    },
-    {
-      title: "Family",
-      url: "/family",
-      icon: IconUsers,
-    },
-    {
-      title: "Sources",
-      url: "/sources",
-      icon: IconFolder,
-    },
+    { title: "Dashboard", url: "/", icon: IconCardboards },
+    { title: "Ledger", url: "/ledger", icon: IconReceipt },
+    { title: "AI", url: "/ai", icon: IconSparkles },
+    { title: "Family", url: "/family", icon: IconUsers },
+    { title: "Sources", url: "/sources", icon: IconFolder },
   ],
 };
 
-export default function DashboardLayout({}) {
+export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
+  const [isCookieChecked, setIsCookieChecked] = useState(false);
 
-  // useEffect(() => {
-  //   if (!user) {
-  //     const timeout = setTimeout(() => {
-  //       // logout(); // Call your logout function
-  //       navigate("/login");
-  //     }, 2000);
+  useEffect(() => {
+    const cookie = document.cookie;
+    const parsedToken = parseCookies(cookie);
+    const cookieUser = parsedToken.user;
 
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [user]);
+    if (!cookieUser) {
+      const timeout = setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
 
-  // if (isLoading || user === undefined) {
-  //   return (
-  //     <div className="flex h-screen items-center justify-center">
-  //       <Skeleton className="h-10 w-10 rounded-full" />
-  //       <Skeleton className="h-6 w-40 ml-4" />
-  //     </div>
-  //   );
-  // }
+    setIsCookieChecked(true);
+  }, []);
+
+  if (isLoading || !isCookieChecked) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-6 w-40 ml-4" />
+      </div>
+    );
+  }
 
   const activeNavItem = data.navMain.find(
     (item) => location.pathname === item.url
