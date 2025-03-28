@@ -5,11 +5,15 @@ const useAuthStore = create(
   persist(
     (set) => ({
       user: undefined,
-      logout: () => set({ user: undefined }), // Fix: Correctly set user to undefined
+      teams: [],
+      selectedTeam: null,
+      setTeams: (teams) => set({ teams }),
+      setSelectedTeam: (team) => set({ selectedTeam: team }),
+      logout: () => set({ user: undefined, teams: [], selectedTeam: null }),
       setUser: (user) => set({ user }),
     }),
     {
-      name: "user-auth", // name of the item in the storage (must be unique)
+      name: "user-auth",
     }
   )
 );

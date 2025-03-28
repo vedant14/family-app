@@ -11,21 +11,34 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
+import { useAuthStore } from "~/utils/store";
 
 export function AppSidebar({ data, activeNavItem }) {
+  const teams = useAuthStore((state) => state.teams);
+  const selectedTeam = useAuthStore((state) => state.selectedTeam);
+  const setSelectedTeam = useAuthStore((state) => state.setSelectedTeam);
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <Link to="/">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </Link>
+            <SidebarMenuButton>
+              <select
+                value={selectedTeam?.id || ""}
+                onChange={(e) => {
+                  const team = teams.find(
+                    (t) => t.id === Number(e.target.value)
+                  );
+                  setSelectedTeam(team);
+                }}
+                className="text-base font-semibold"
+              >
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.team}
+                  </option>
+                ))}
+              </select>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

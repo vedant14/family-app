@@ -111,7 +111,6 @@ export function HydrateFallback() {
 
 export default function Product({ loaderData }) {
   const transactions = loaderData;
-  console.log(transactions);
   return (
     <div>
       {/* <div className="flex justify-end mb-4">
