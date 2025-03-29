@@ -12,6 +12,8 @@ model Team {
   name     String?
   users    TeamUser[] // Many-to-many relationship via TeamUser
   Category Category[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime?        @updatedAt
 }
 
 model User {
@@ -37,6 +39,8 @@ model TeamUser {
   transactions Ledger[]
   sources      Source[]
   @@unique([teamId, userId]) // Ensures a user can't join the same team twice
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime?        @updatedAt
 }
 
 model Ledger {
@@ -90,6 +94,8 @@ model Category {
   team         Team     @relation(fields: [teamId], references: [id])
   ledgers      Ledger[]
   sources      Source[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime?        @updatedAt
 }
 
 enum TransactionType {

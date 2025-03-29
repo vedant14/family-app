@@ -24,17 +24,17 @@ export function AppSidebar({ data, activeNavItem }) {
           <SidebarMenuItem>
             <SidebarMenuButton>
               <select
-                value={selectedTeam?.id || ""}
+                value={selectedTeam?.teamId || ""}
                 onChange={(e) => {
                   const team = teams.find(
-                    (t) => t.id === Number(e.target.value)
+                    (t) => t.teamId === Number(e.target.value)
                   );
                   setSelectedTeam(team);
                 }}
                 className="text-base font-semibold"
               >
                 {teams.map((team) => (
-                  <option key={team.id} value={team.id}>
+                  <option key={team.teamId} value={team.teamId}>
                     {team.team}
                   </option>
                 ))}
@@ -43,8 +43,9 @@ export function AppSidebar({ data, activeNavItem }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="divide-y-1">
         <NavMain items={data.navMain} activeNavItem={activeNavItem} />
+        <NavMain items={data.navTeam} activeNavItem={activeNavItem} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

@@ -1,6 +1,5 @@
-import axios from "axios";
 import { useState } from "react";
-import { Form, useRevalidator } from "react-router";
+import { Form } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   DialogContent,
@@ -11,7 +10,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useAuthStore, useDialogStore } from "~/utils/store";
+import { useDialogStore } from "~/utils/store";
 
 export function SourceForm() {
   const formLayout = [
@@ -88,8 +87,6 @@ export function SourceForm() {
     },
   ];
   const toggleOpen = useDialogStore((state) => state.toggleOpen);
-  const user = useAuthStore((state) => state.user);
-  const revalidator = useRevalidator();
   const [formData, setFormData] = useState(() => {
     const initialState = {};
     formLayout.forEach((row) => {

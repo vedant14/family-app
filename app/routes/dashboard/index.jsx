@@ -25,13 +25,16 @@ export async function loader({ request }) {
       id: true,
       team: {
         select: {
+          id: true,
           name: true,
         },
       },
     },
   });
+
   const teams = teamData.map(({ id, team }) => ({
-    id,
+    teamId: team.id,
+    teamUserId: id,
     team: team.name,
   }));
 

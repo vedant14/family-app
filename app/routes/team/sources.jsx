@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { SourceForm } from "~/dashboard/create-source-form";
-import { findUserByEmail, verifyIdToken } from "~/utils/authHelpers";
+import { findTeamUserByEmail, verifyIdToken } from "~/utils/authHelpers";
 import { parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
@@ -39,7 +39,7 @@ export async function action({ request }) {
     rulePriority = 1,
   } = data;
   const verifyUser = await verifyIdToken(cookie.user);
-  const user = await findUserByEmail(verifyUser.email);
+  const user = await findTeamUserByEmail(verifyUser.email);
   if (!sourceName || !defaultType) {
     return { error: "What is required, is required!" };
   }
@@ -91,7 +91,11 @@ export async function loader() {
       amountRegexBackup: true,
       user: {
         select: {
-          email: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
         },
       },
     },

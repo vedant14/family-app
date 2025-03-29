@@ -6,11 +6,14 @@ import { AppSidebar } from "~/components/app-sidebar";
 import { useAuthStore } from "~/utils/store";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
-  IconFolder,
+  IconFilterCheck,
   IconReceipt,
   IconSparkles,
   IconCardboards,
   IconUsers,
+  IconCalendarDollar,
+  IconFolderFilled,
+  IconCategory2,
 } from "@tabler/icons-react";
 import { parseCookies } from "~/utils/helperFunctions";
 
@@ -19,8 +22,12 @@ const data = {
     { title: "Dashboard", url: "/", icon: IconCardboards },
     { title: "Ledger", url: "/ledger", icon: IconReceipt },
     { title: "AI", url: "/ai", icon: IconSparkles },
-    { title: "Family", url: "/family", icon: IconUsers },
-    { title: "Sources", url: "/sources", icon: IconFolder },
+  ],
+  navTeam: [
+    { title: "Teams Space", url: "/manage-team", icon: IconUsers },
+    { title: "Sources", url: "/sources", icon: IconFilterCheck },
+    { title: "Categories", url: "/categories", icon: IconCategory2 },
+    { title: "Budgets", url: "/budgets", icon: IconCalendarDollar },
   ],
 };
 
@@ -54,15 +61,16 @@ export default function DashboardLayout() {
     );
   }
 
-  const activeNavItem = data.navMain.find(
+  const activeNavItem = [...data.navMain, ...data.navTeam].find(
     (item) => location.pathname === item.url
   );
+
   const activeTitle = activeNavItem ? activeNavItem.title : "Dashboard"; // Default title
 
   return (
     <SidebarProvider
       style={{
-        "--sidebar-width": "calc(var(--spacing) * 72)",
+        "--sidebar-width": "calc(var(--spacing) * 60)",
         "--header-height": "calc(var(--spacing) * 12)",
       }}
     >
