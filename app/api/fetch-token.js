@@ -54,17 +54,17 @@ export const action = async ({ request }) => {
         }),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
-
-      await updateAccessToken(
+      const userUpdated = await updateAccessToken(
         email,
         response.data.access_token,
+        response.data.id_token,
         response.data.expires_in
       );
 
       return new Response(
         JSON.stringify({
           success: true,
-          accessToken: response.data.access_token,
+          user: userUpdated,
         }),
         { headers: { "Content-Type": "application/json" } }
       );
@@ -88,12 +88,13 @@ export const action = async ({ request }) => {
   }
 };
 
-const updateAccessToken = async (email, access_token, expires_in) => {
+const updateAccessToken = async (email, access_token, id_token, expires_in) => {
   try {
     const user = await prisma.user.update({
       where: { email },
       data: {
         accessToken: access_token,
+        idToken: id_token,
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
     });

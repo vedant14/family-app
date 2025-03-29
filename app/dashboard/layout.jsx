@@ -19,15 +19,15 @@ import { parseCookies } from "~/utils/helperFunctions";
 
 const data = {
   navMain: [
-    { title: "Dashboard", url: "/", icon: IconCardboards },
-    { title: "Ledger", url: "/ledger", icon: IconReceipt },
-    { title: "AI", url: "/ai", icon: IconSparkles },
+    { title: "Dashboard", url: "", icon: IconCardboards },
+    { title: "Ledger", url: "ledger", icon: IconReceipt },
+    { title: "AI", url: "ai", icon: IconSparkles },
   ],
   navTeam: [
-    { title: "Teams Space", url: "/manage-team", icon: IconUsers },
-    { title: "Sources", url: "/sources", icon: IconFilterCheck },
-    { title: "Categories", url: "/categories", icon: IconCategory2 },
-    { title: "Budgets", url: "/budgets", icon: IconCalendarDollar },
+    { title: "Teams Space", url: "manage-team", icon: IconUsers },
+    { title: "Sources", url: "sources", icon: IconFilterCheck },
+    { title: "Categories", url: "categories", icon: IconCategory2 },
+    { title: "Budgets", url: "budgets", icon: IconCalendarDollar },
   ],
 };
 
@@ -41,14 +41,12 @@ export default function DashboardLayout() {
     const cookie = document.cookie;
     const parsedToken = parseCookies(cookie);
     const cookieUser = parsedToken.user;
-
     if (!cookieUser) {
       const timeout = setTimeout(() => {
         navigate("/login");
       }, 2000);
       return () => clearTimeout(timeout);
     }
-
     setIsCookieChecked(true);
   }, []);
 
@@ -60,12 +58,12 @@ export default function DashboardLayout() {
       </div>
     );
   }
+  const activeNavItem =
+    [...data.navMain, ...data.navTeam].find(
+      (item) => location.pathname.split("/").slice(-1)[0] === item.url
+    ) || data.navMain[0];
 
-  const activeNavItem = [...data.navMain, ...data.navTeam].find(
-    (item) => location.pathname === item.url
-  );
-
-  const activeTitle = activeNavItem ? activeNavItem.title : "Dashboard"; // Default title
+  const activeTitle = activeNavItem.title;
 
   return (
     <SidebarProvider

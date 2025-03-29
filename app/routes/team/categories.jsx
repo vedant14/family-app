@@ -2,10 +2,15 @@ import { useLoaderData, Form } from "react-router";
 import prisma from "~/utils/prismaClient";
 import { useAuthStore } from "~/utils/store";
 
-export async function loader() {
+export async function loader({ params }) {
   const categories = await prisma.category.findMany({
+    where: {
+      teamId: {
+        equals: Number(params.teamId),
+      },
+    },
     orderBy: {
-      createdAt: 'asc',
+      createdAt: "asc",
     },
   });
   return categories;

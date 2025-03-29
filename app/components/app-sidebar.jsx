@@ -1,4 +1,5 @@
-import { IconInnerShadowTop } from "@tabler/icons-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { NavMain } from "~/components/nav-main";
 import { NavUser } from "~/components/nav-user";
@@ -17,6 +18,14 @@ export function AppSidebar({ data, activeNavItem }) {
   const teams = useAuthStore((state) => state.teams);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const setSelectedTeam = useAuthStore((state) => state.setSelectedTeam);
+  const navigate = useNavigate(); // Hook for navigation
+
+  useEffect(() => {
+    if (selectedTeam?.teamId) {
+      navigate(`/${selectedTeam.teamId}`);
+    }
+  }, [selectedTeam]);
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>

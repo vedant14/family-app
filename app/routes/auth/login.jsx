@@ -10,7 +10,7 @@ import clsx from "clsx";
 import { useAuthStore } from "~/utils/store";
 import { parseCookies } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
   useEffect(() => {
     const cookie = document.cookie;
