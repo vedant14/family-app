@@ -3,6 +3,9 @@ export const classNames = (...classes) => {
 };
 
 export function parseCookies(cookieString) {
+  if (!cookieString || cookieString === undefined) {
+    return null;
+  }
   return Object.fromEntries(
     cookieString
       .split("; ")

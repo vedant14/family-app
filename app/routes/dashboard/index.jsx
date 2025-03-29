@@ -9,46 +9,7 @@ import { verifyIdToken } from "~/utils/authHelpers";
 import { parseCookies } from "~/utils/helperFunctions";
 import { useEffect } from "react";
 
-export async function loader({ request }) {
-  const header = Object.fromEntries(request.headers);
-  const cookie = parseCookies(header.cookie);
-  const verifyUser = await verifyIdToken(cookie.user);
-  const teamData = await prisma.teamUser.findMany({
-    where: {
-      user: {
-        email: {
-          equals: "vedant.lohbare@gmail.com",
-        },
-      },
-    },
-    select: {
-      id: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  const teams = teamData.map(({ id, team }) => ({
-    teamId: team.id,
-    teamUserId: id,
-    team: team.name,
-  }));
-
-  return teams;
-}
-
-export default function Page({ loaderData }) {
-  const setTeams = useAuthStore((state) => state.setTeams);
-  const teams = loaderData;
-  useEffect(() => {
-    if (teams) {
-      setTeams(teams);
-    }
-  }, [teams]);
+export default function Page() {
   return (
     <div>
       <SectionCards />

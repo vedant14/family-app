@@ -36,10 +36,12 @@ export default function DashboardLayout() {
   const location = useLocation();
   const isLoading = useAuthStore((state) => state.isLoading);
   const [isCookieChecked, setIsCookieChecked] = useState(false);
-
   useEffect(() => {
     const cookie = document.cookie;
     const parsedToken = parseCookies(cookie);
+    if (!parsedToken) {
+      navigate("/login");
+    }
     const cookieUser = parsedToken.user;
     if (!cookieUser) {
       const timeout = setTimeout(() => {

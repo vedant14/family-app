@@ -12,6 +12,12 @@ import {
 export async function loader({ request, params }) {
   const header = Object.fromEntries(request.headers);
   const cookie = parseCookies(header.cookie);
+  if (!cookie) {
+    return {
+      auth: false,
+      valid: false,
+    };
+  }
   const verifyUser = await verifyIdToken(cookie.user);
   let user;
   if (verifyUser.auth === false && verifyUser.email) {

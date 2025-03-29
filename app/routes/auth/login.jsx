@@ -14,10 +14,12 @@ export default function Login({ className, ...props }) {
   const setUser = useAuthStore((state) => state.setUser);
   useEffect(() => {
     const cookie = document.cookie;
-    const parsedToken = parseCookies(cookie);
-    const cookieUser = parsedToken.user;
-    if (cookieUser) {
-      navigate("/");
+    if (cookie) {
+      const parsedToken = parseCookies(cookie);
+      const cookieUser = parsedToken.user;
+      if (cookieUser) {
+        navigate("/");
+      }
     }
   }, []);
 
