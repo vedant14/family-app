@@ -3,7 +3,11 @@ import prisma from "~/utils/prismaClient";
 import { useAuthStore } from "~/utils/store";
 
 export async function loader() {
-  const categories = await prisma.category.findMany();
+  const categories = await prisma.category.findMany({
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
   return categories;
 }
 
@@ -47,12 +51,7 @@ export default function Categories() {
           placeholder="New Category"
           className="border p-2"
         />
-        <input
-          type="number"
-          name="teamId"
-          type="hidden"
-          value={selectedTeam.teamId}
-        />
+        <input name="teamId" type="hidden" value={selectedTeam.teamId} />
 
         <button
           type="submit"
