@@ -1,87 +1,58 @@
-# Welcome to React Router!
 
-A modern, production-ready template for building full-stack React applications using React Router.
+#### **Project Setup**  
+- [x] **Set up repo & project structure** → Initialize Next.js, Prisma (SQLite/PostgreSQL), and set up basic file structure. ✅ 2025-03-27
+	- Use React Router and Prisma Sqlite in dev and neon on production
+	- Use Neon DB
+- [x] **Define database schema** → Create tables for transactions, email criteria, and user preferences. ✅ 2025-03-27
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+#### **Email Integration**  
+- [x] **Set up Google OAuth** → Allow the app to connect to a Google account securely. ✅ 2025-03-27
+- [x] Create source rules ✅ 2025-03-28
+- [x] Show Source Rules ✅ 2025-03-28
+- [x] Create teams ✅ 2025-03-28
+- [x] Add user to team
+- [ ] Set teams on login
+- [x] Create custom categories
+- [ ] **Fetch emails based on criteria** → Store rules (e.g., sender, subject, keywords) and retrieve relevant emails.  
+	- [ ] Create Crons
+	- [x] Edit source rules
+- [ ] **Parse transactions from email** → Extract merchant, amount, and date from email body.  
+	- Fetch emails
+	- Parse them using cron
+#### **Transaction Storage & API**  
+- [ ] **Create GET API for transaction summary** → Return categorized transaction data with filters.  
+- [ ] **Manual categorising transactions** → Allow users to manually move transactions into categories.  
+	- For drag and drop perhaps https://stackblitz.com/edit/react-1j37eg?file=src%2FApp.js
+#### **Frontend Dashboard**  
+- [x] **Set up mobile-friendly UI** → Show recent transactions, summaries, and charts. ✅ 2025-03-27
+	- Use ShadCn and/or v0
+	- https://v0.dev/chat/community/financial-dashboard-DuidKNEmCKf
+	- https://v0.dev/chat/community/analytics-dashboard-WUYQbNYP3gt
+	- https://v0.dev/chat/community/financial-dashboard-functional-jUBqSBJsNrz
+- [ ] Reports
+	- See lunch money's screenshots
+	- https://v0.dev/chat/community/next-js-charts-MislIISzd67
+- [ ] **Display categorized spends** → Show spending breakdown by category.  
+- [ ] **Add simple filters & sorting** → Let users view transactions by date, category, or amount.  
+- [ ] Search - maybe local search or create an api for searching:
+	- https://v0.dev/chat/community/action-search-bar-S3nMPSmpQzk
 
-## Features
+#### **AI-Powered Features**  
+- [ ] **Implement AI spend summarization** → Generate short insights on spending patterns.  
+- [ ] **Implement AI-based categorization** → Auto-assign categories to transactions.  
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+#### **Deployment & Testing**  
+- [ ] **Deploy backend & frontend** → Use Railway or Render for hosting.
+- [ ] **Test email fetching & API** → Ensure transactions are extracted and categorized correctly.  
+- [ ] **Monitor and refine AI results** → Adjust model behavior based on real data.  
 
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+#### Future Scope
+- [ ] One user can have multiple email inboxes.
+- [ ] Budgets
+	- See lunch money's screenshots
+- [ ] Conversion of EMIs (NoCost and Otherwise)
+- [ ] Goals for no-spend days
+- [ ] Tag expenses using NFC
+- [ ] Show a quote everytime you open the dashboard
+- [ ] Other goals
+- [ ] Categories have to by dynamic
