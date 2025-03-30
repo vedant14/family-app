@@ -41,6 +41,7 @@ export const findUserByEmail = async (email) => {
     select: {
       id: true,
       refreshToken: true,
+      name: true,
       teams: {
         select: {
           teamId: true,

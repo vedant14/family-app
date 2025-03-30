@@ -31,6 +31,7 @@ export const action = async ({ request }) => {
       },
     });
 
+    console.log(user);
     // Check if the user is part of any team
     let existingTeamUser = await prisma.teamUser.findMany({
       where: { userId: user.id },
@@ -76,9 +77,12 @@ export const action = async ({ request }) => {
       teamId: item.team.id,
       name: item.team.name,
     }));
-    return new Response(JSON.stringify({ user: user, teams: transformedTeam }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ user: user, teams: transformedTeam }),
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error fetching user profile:", error);
 
