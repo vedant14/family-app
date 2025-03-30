@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
-import { useAuthStore } from "~/utils/store";
 import { Skeleton } from "~/components/ui/skeleton";
 import {
   IconFilterCheck,
@@ -32,41 +30,13 @@ const data = {
 };
 
 export default function DashboardLayout() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const isLoading = useAuthStore((state) => state.isLoading);
-  const [isCookieChecked, setIsCookieChecked] = useState(false);
-  useEffect(() => {
-    const cookie = document.cookie;
-    const parsedToken = parseCookies(cookie);
-    if (!parsedToken) {
-      navigate("/login");
-    }
-    const cookieUser = parsedToken.user;
-    if (!cookieUser) {
-      const timeout = setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-      return () => clearTimeout(timeout);
-    }
-    setIsCookieChecked(true);
-  }, []);
-
-  if (isLoading || !isCookieChecked) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <Skeleton className="h-6 w-40 ml-4" />
-      </div>
-    );
-  }
   const activeNavItem =
     [...data.navMain, ...data.navTeam].find(
       (item) => location.pathname.split("/").slice(-1)[0] === item.url
     ) || data.navMain[0];
 
   const activeTitle = activeNavItem.title;
-
   return (
     <SidebarProvider
       style={{

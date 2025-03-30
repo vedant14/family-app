@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import axios from "axios";
 import { useGoogleLogin } from "@react-oauth/google";
-import { Link, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -10,15 +9,17 @@ import clsx from "clsx";
 import { useAuthStore } from "~/utils/store";
 import { parseCookies } from "~/utils/helperFunctions";
 export default function Login({ className, ...props }) {
-  const navigate = useNavigate();
   const setUser = useAuthStore((state) => state.setUser);
+  const setTeams = useAuthStore((state) => state.setTeams);
+  const setSelectedTeam = useAuthStore((state) => state.setSelectedTeam);
+
   useEffect(() => {
     const cookie = document.cookie;
     if (cookie) {
       const parsedToken = parseCookies(cookie);
       const cookieUser = parsedToken.user;
       if (cookieUser) {
-        navigate("/");
+        window.location.href = "/";
       }
     }
   }, []);
@@ -34,10 +35,13 @@ export default function Login({ className, ...props }) {
       });
       const data = await res.json();
       if (res.ok) {
-        setUser(data);
-        document.cookie = `user=${data.idToken}; path=/; max-age=${
+        setTeams(data.teams);
+        setSelectedTeam(data.teams[0]);
+        setUser(data.user);
+        document.cookie = `user=${data.user.idToken}; path=/; max-age=${
           60 * 60 * 24 * 7
         }`;
+        window.location.href = `/${data.teams[0].teamId}`;
       } else {
         console.error("Error creating user:", data.error);
       }
@@ -48,11 +52,14 @@ export default function Login({ className, ...props }) {
 
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
-      const tokens = await axios.post("/api/fetch-token", {
-        code: codeResponse.code,
-      });
-      navigate("/");
-      createUser(tokens.data);
+      try {
+        const tokens = await axios.post("/api/fetch-token", {
+          code: codeResponse.code,
+        });
+        await createUser(tokens.data);
+      } catch (error) {
+        console.error("Navigation failed:", error);
+      }
     },
     flow: "auth-code",
     scope:
@@ -86,12 +93,6 @@ export default function Login({ className, ...props }) {
                 <div className="grid gap-2">
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="#"
-                      className="ml-auto text-sm underline-offset-2 hover:underline"
-                    >
-                      Forgot your password?
-                    </Link>
                   </div>
                   <Input id="password" type="password" required />
                 </div>

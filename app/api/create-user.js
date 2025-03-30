@@ -32,8 +32,17 @@ export const action = async ({ request }) => {
     });
 
     // Check if the user is part of any team
-    const existingTeamUser = await prisma.teamUser.findFirst({
+    let existingTeamUser = await prisma.teamUser.findMany({
       where: { userId: user.id },
+      select: {
+        id: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!existingTeamUser) {
@@ -46,15 +55,28 @@ export const action = async ({ request }) => {
       });
 
       // Link user to the new team in TeamUser
-      await prisma.teamUser.create({
+      let existingTeamUser = await prisma.teamUser.create({
         data: {
           teamId: newTeam.id,
           userId: user.id,
         },
+        select: {
+          id: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       });
     }
-
-    return new Response(JSON.stringify(user), {
+    const transformedTeam = existingTeamUser.map((item) => ({
+      teamUserId: item.id,
+      teamId: item.team.id,
+      name: item.team.name,
+    }));
+    return new Response(JSON.stringify({ user: user, teams: transformedTeam }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {

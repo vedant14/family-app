@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
-import { Link } from "react-router";
 import { NavMain } from "~/components/nav-main";
 import { NavUser } from "~/components/nav-user";
 import {
@@ -18,14 +15,6 @@ export function AppSidebar({ data, activeNavItem }) {
   const teams = useAuthStore((state) => state.teams);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   const setSelectedTeam = useAuthStore((state) => state.setSelectedTeam);
-  const navigate = useNavigate(); // Hook for navigation
-
-  useEffect(() => {
-    if (selectedTeam?.teamId) {
-      navigate(`/${selectedTeam.teamId}`);
-    }
-  }, [selectedTeam]);
-
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
@@ -38,13 +27,16 @@ export function AppSidebar({ data, activeNavItem }) {
                   const team = teams.find(
                     (t) => t.teamId === Number(e.target.value)
                   );
-                  setSelectedTeam(team);
+                  if (team) {
+                    setSelectedTeam(team);
+                    window.location.href = `/${team.teamId}`; // Only navigate on selection
+                  }
                 }}
                 className="text-base font-semibold"
               >
                 {teams.map((team) => (
                   <option key={team.teamId} value={team.teamId}>
-                    {team.team}
+                    {team.name}
                   </option>
                 ))}
               </select>

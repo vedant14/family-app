@@ -16,6 +16,7 @@ export async function loader({ request, params }) {
     return {
       auth: false,
       valid: false,
+      user: null,
     };
   }
   const verifyUser = await verifyIdToken(cookie.user);
@@ -29,6 +30,7 @@ export async function loader({ request, params }) {
     return {
       auth: verifyUser.auth,
       valid: false,
+      user: null,
     };
   }
   const teamId = Number(params.teamId);
@@ -40,7 +42,6 @@ export async function loader({ request, params }) {
       user,
     };
   }
-
   return {
     auth: verifyUser.auth,
     valid: true,
@@ -48,10 +49,14 @@ export async function loader({ request, params }) {
   };
 }
 export default function DashboardOutlet({ loaderData }) {
+  console.log(loaderData);
   const setUser = useAuthStore((state) => state.setUser);
   useEffect(() => {
     if (loaderData?.auth === false && loaderData.user) {
       setUser(loaderData.user);
+    }
+    if (!loaderData.user) {
+      window.location.href = "/login";
     }
   }, [loaderData, setUser]);
 

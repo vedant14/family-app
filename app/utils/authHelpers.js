@@ -95,6 +95,17 @@ const updateAccessToken = async (email, access_token, id_token, expires_in) => {
         idToken: id_token,
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
+      select: {
+        id: true,
+        idToken: true,
+        name: true,
+        refreshToken: true,
+        teams: {
+          select: {
+            teamId: true,
+          },
+        },
+      },
     });
     return user; // Return the updated user if needed
   } catch (error) {
