@@ -29,7 +29,7 @@ export function AppSidebar({ data, activeNavItem }) {
                   );
                   if (team) {
                     setSelectedTeam(team);
-                    window.location.href = `/${team.teamId}`; // Only navigate on selection
+                    window.location.href = `/${team.teamId}/${activeNavItem.url}`; // Only navigate on selection
                   }
                 }}
                 className="text-base font-semibold"
