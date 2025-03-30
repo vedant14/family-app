@@ -29,7 +29,6 @@ async function extractAmountJobs() {
         job.source.payeeRegexBackup
       );
       if (data.amount) {
-        console.log(data, job.id);
         const amountFloat = parseFloat(data.amount.replace(/,/g, ""));
         await prisma.ledger.update({
           where: { id: job.id },

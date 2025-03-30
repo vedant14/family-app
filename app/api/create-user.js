@@ -30,8 +30,6 @@ export const action = async ({ request }) => {
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
     });
-
-    console.log(user);
     // Check if the user is part of any team
     let existingTeamUser = await prisma.teamUser.findMany({
       where: { userId: user.id },
