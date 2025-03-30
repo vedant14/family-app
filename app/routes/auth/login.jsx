@@ -15,7 +15,7 @@ export default function Login({ className, ...props }) {
 
   useEffect(() => {
     const cookie = document.cookie;
-    if (cookie) {
+    if (cookie && cookie !== undefined) {
       const parsedToken = parseCookies(cookie);
       const cookieUser = parsedToken.user;
       if (cookieUser) {

@@ -34,7 +34,7 @@ export async function action({ request, params }) {
     amountRegexBackup,
     payeeRegex,
     payeeRegexBackup,
-    defaultCategory,
+    categoryId,
     defaultType,
     rulePriority = 1,
   } = data;
@@ -76,6 +76,7 @@ export async function action({ request, params }) {
       payeeRegexBackup,
       defaultType,
       rulePriority,
+      categoryId: Number(categoryId),
     },
   });
   return source;
@@ -90,6 +91,7 @@ export async function loader({ params }) {
       query: true,
       payeeRegex: true,
       payeeRegexBackup: true,
+      defaultCategory: true,
       amountRegex: true,
       amountRegexBackup: true,
       user: {
@@ -115,7 +117,20 @@ export async function loader({ params }) {
       createdAt: "asc",
     },
   });
-  return sources;
+  const categories = await prisma.category.findMany({
+    where: {
+      teamId: {
+        equals: Number(params.teamId),
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+  return {
+    sources,
+    categories,
+  };
 }
 
 export function HydrateFallback() {
@@ -134,12 +149,12 @@ export default function Product({ loaderData, actionData }) {
       }
     }
   }, [actionData]);
-  const sources = loaderData;
+  const { sources, categories } = loaderData;
   return (
     <div>
       <div className="flex justify-end mb-4">
         <Dialog open={open}>
-          <SourceForm />
+          <SourceForm categories={categories} />
           <Button
             tooltip="Quick Create"
             className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
@@ -163,13 +178,14 @@ export default function Product({ loaderData, actionData }) {
               <TableHead className="text-left">Amount Regex Backup</TableHead>
               <TableHead className="text-left">Payee Regex</TableHead>
               <TableHead className="text-left">Payee Regex Backup</TableHead>
+              <TableHead className="text-left">Default Category</TableHead>
               <TableHead className="text-center">...</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sources.map((source, i) => (
               <TableRow
-                key={source.id}
+                key={i}
                 className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
                 <TableCell>{source.id}</TableCell>
@@ -181,6 +197,7 @@ export default function Product({ loaderData, actionData }) {
                 <TableCell>{source.payeeRegexBackup}</TableCell>
                 <TableCell>{source.amountRegex}</TableCell>
                 <TableCell>{source.amountRegexBackup}</TableCell>
+                <TableCell>{source.defaultCategory?.categoryName}</TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <a href="#" className="text-indigo-600 hover:text-indigo-900">
                     Edit

@@ -29,7 +29,6 @@ export function NavUser() {
   const { isMobile } = useSidebar();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-
   const navigate = useNavigate();
   const handleLogout = () => {
     document.cookie = "user=; path=/; max-age=0";

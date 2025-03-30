@@ -12,7 +12,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useDialogStore } from "~/utils/store";
 
-export function SourceForm() {
+export function SourceForm({ categories }) {
   const formLayout = [
     {
       fields: [
@@ -34,31 +34,10 @@ export function SourceForm() {
           options: ["EXPENSE", "INCOME"],
         },
         {
-          id: "defaultCategory",
+          id: "categoryId",
           label: "Default category for this expense/income",
-          type: "select",
-          options: [
-            "FOOD_AND_DRINKS",
-            "SHOPPING",
-            "GROOMING",
-            "HEALTH",
-            "INVESTMENT",
-            "TRAVEL",
-            "ENTERTAINMENT",
-            "OTHERS",
-            "GROCERIES",
-            "FUEL",
-            "BILLS",
-            "LEARNING",
-            "LEND_SPLITWISE",
-            "REFUND",
-            "SALARY",
-            "REDEEM",
-            "SELF_TRANSFER",
-            "SIDE_INCOME",
-            "CREDIT_CARD_BILL",
-            "JUNK",
-          ],
+          type: "category",
+          options: categories,
         },
       ],
     },
@@ -114,32 +93,35 @@ export function SourceForm() {
         <div className="grid gap-4 py-4">
           {formLayout.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-2 gap-4">
-              {row.fields.map((field) => (
-                <div
-                  key={field.id}
-                  className="grid grid-cols-5 items-center gap-4"
-                >
-                  <Label htmlFor={field.id} className="text-left col-span-2">
-                    {field.label}
+              {row.fields.map(({ id, label, type, options }) => (
+                <div key={id} className="grid grid-cols-5 items-center gap-4">
+                  <Label htmlFor={id} className="text-left col-span-2">
+                    {label}
                   </Label>
-
-                  {field.type === "select" ? (
+                  {type === "select" || type === "category" ? (
                     <select
-                      id={field.id}
-                      name={field.id}
+                      id={id}
+                      name={id}
                       className="col-span-3 border border-gray-300 rounded p-2"
+                      defaultValue=""
                     >
-                      {field.options.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
+                      <option value="" disabled>
+                        Select an option
+                      </option>
+                      {options.map((option) => (
+                        <option
+                          key={option.id || option}
+                          value={option.id || option}
+                        >
+                          {option.categoryName || option}
                         </option>
                       ))}
                     </select>
                   ) : (
                     <Input
-                      id={field.id}
-                      name={field.id}
-                      type={field.type}
+                      id={id}
+                      name={id}
+                      type={type}
                       className="col-span-3"
                     />
                   )}
@@ -148,6 +130,7 @@ export function SourceForm() {
             </div>
           ))}
         </div>
+
         <DialogFooter>
           <Button type="submit">Create Source</Button>
         </DialogFooter>

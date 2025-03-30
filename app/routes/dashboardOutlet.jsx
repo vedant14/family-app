@@ -6,6 +6,7 @@ import {
   verifyIdToken,
 } from "~/utils/authHelpers";
 import { useAuthStore } from "~/utils/store";
+import { useEffect } from "react";
 
 export async function loader({ request, params }) {
   const header = Object.fromEntries(request.headers);
@@ -14,6 +15,9 @@ export async function loader({ request, params }) {
     return redirect("/login"); // Redirect if no cookie
   }
   const verifyUser = await verifyIdToken(cookie.user);
+  if (!verifyUser) {
+    return redirect("/login"); // Redirect if no cookie
+  }
   let user;
   if (verifyUser.auth === false && verifyUser.email) {
     user = await refreshToken(verifyUser.email);
@@ -44,9 +48,15 @@ export async function loader({ request, params }) {
 
 export default function DashboardOutlet({ loaderData }) {
   const setUser = useAuthStore((state) => state.setUser);
-  if (!loaderData.auth && loaderData.user) {
-    setUser(loaderData.user);
-  }
+  
+  useEffect(() => {
+    if (loaderData && !loaderData.auth) {
+      setUser(loaderData.user);
+      document.cookie = `user=${loaderData.user.idToken}; path=/; max-age=${
+        60 * 60 * 24 * 7
+      }`;
+    }
+  }, [loaderData]);
 
   return <Outlet />;
 }

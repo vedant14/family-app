@@ -34,8 +34,8 @@ export function AppSidebar({ data, activeNavItem }) {
                 }}
                 className="text-base font-semibold"
               >
-                {teams.map((team) => (
-                  <option key={team.teamId} value={team.teamId}>
+                {teams.map((team,i) => (
+                  <option key={i} value={team.teamId}>
                     {team.name}
                   </option>
                 ))}

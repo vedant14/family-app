@@ -25,8 +25,8 @@ export function NavMain({ items, activeNavItem }) {
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+          {items.map((item,i) => (
+            <SidebarMenuItem key={i}>
               <Link to={`${selectedTeam.teamId}/${item.url}`}>
                 <SidebarMenuButton
                   tooltip={item.title}
