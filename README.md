@@ -13,12 +13,10 @@
 - [x] Add user to team
 - [ ] Set teams on login
 - [x] Create custom categories
-- [ ] **Fetch emails based on criteria** → Store rules (e.g., sender, subject, keywords) and retrieve relevant emails.  
+- [x] **Fetch emails based on criteria** → Store rules (e.g., sender, subject, keywords) and retrieve relevant emails.  
 	- [ ] Create Crons
 	- [x] Edit source rules
-- [ ] **Parse transactions from email** → Extract merchant, amount, and date from email body.  
-	- Fetch emails
-	- Parse them using cron
+- [x] **Parse transactions from email** → Extract merchant, amount, and date from email body.  
 #### **Transaction Storage & API**  
 - [ ] **Create GET API for transaction summary** → Return categorized transaction data with filters.  
 - [ ] **Manual categorising transactions** → Allow users to manually move transactions into categories.  

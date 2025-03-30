@@ -29,7 +29,7 @@ async function refreshAccessToken(userId, email) {
 
 export const loader = async ({ params }) => {
   const days = 2;
-  const sourceId = parseInt(params.sourceId, 10);
+  const sourceId = Number(params.sourceId);
   if (isNaN(sourceId)) {
     return new Response(JSON.stringify({ error: "Invalid sourceId format" }), {
       status: 400,
@@ -39,14 +39,41 @@ export const loader = async ({ params }) => {
 
   const sourceObj = await prisma.source.findUnique({
     where: { id: sourceId },
-    include: { user: true },
+    select: {
+      query: true,
+      defaultCategory: {
+        select: {
+          id: true,
+        },
+      },
+      defaultType: true,
+      user: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              id: true,
+              accessToken: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!sourceObj || !sourceObj.user) {
-    return new Response(JSON.stringify({ error: "Source or user not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Source or user not found",
+        sourceObj,
+        sourceId,
+      }),
+      {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const today = new Date();
@@ -57,7 +84,7 @@ export const loader = async ({ params }) => {
   let queryParts = sourceObj.query ? [`${sourceObj.query}`] : [];
   queryParts.push(`after:${afterDate}`);
   const query = queryParts.join(" ");
-  let accessToken = sourceObj.user.accessToken;
+  let accessToken = sourceObj.user.user.accessToken;
   try {
     const listResponse = await axios.get(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}`,
@@ -121,7 +148,7 @@ export const loader = async ({ params }) => {
               userId: sourceObj.user.id,
               emailSubject: subject,
               body,
-              categoryExtract: sourceObj.defaultCategory,
+              categoryId: sourceObj.defaultCategory?.id,
               transactionTypeExtract: sourceObj.defaultType,
               sourceId: sourceId,
             },
@@ -130,7 +157,7 @@ export const loader = async ({ params }) => {
               userId: sourceObj.user.id,
               emailSubject: subject,
               body,
-              categoryExtract: sourceObj.defaultCategory,
+              categoryId: sourceObj.defaultCategory?.id,
               transactionTypeExtract: sourceObj.defaultType,
               emailId: message.id,
               sourceId: sourceId,
