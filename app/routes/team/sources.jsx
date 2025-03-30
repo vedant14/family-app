@@ -19,7 +19,7 @@ import { parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
 
-export async function action({ request }) {
+export async function action({ request, params }) {
   let formData = await request.formData();
   const header = Object.fromEntries(request.headers);
   const cookie = parseCookies(header.cookie);
@@ -39,7 +39,10 @@ export async function action({ request }) {
     rulePriority = 1,
   } = data;
   const verifyUser = await verifyIdToken(cookie.user);
-  const user = await findTeamUserByEmail(verifyUser.email);
+  const user = await findTeamUserByEmail(
+    verifyUser.email,
+    Number(params.teamId)
+  );
   if (!sourceName || !defaultType) {
     return { error: "What is required, is required!" };
   }
@@ -78,7 +81,7 @@ export async function action({ request }) {
   return source;
 }
 
-export async function loader() {
+export async function loader({ params }) {
   const sources = await prisma.source.findMany({
     select: {
       id: true,
@@ -98,6 +101,18 @@ export async function loader() {
           },
         },
       },
+    },
+    where: {
+      user: {
+        team: {
+          id: {
+            equals: Number(params.teamId),
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
   return sources;
@@ -160,7 +175,7 @@ export default function Product({ loaderData, actionData }) {
                 <TableCell>{source.id}</TableCell>
                 <TableCell>{source.sourceName}</TableCell>
                 <TableCell>{source.sourceType}</TableCell>
-                <TableCell>{source.user.email}</TableCell>
+                <TableCell>{source.user.user.email}</TableCell>
                 <TableCell>{source.query}</TableCell>
                 <TableCell>{source.payeeRegex}</TableCell>
                 <TableCell>{source.payeeRegexBackup}</TableCell>

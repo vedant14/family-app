@@ -50,11 +50,14 @@ export const findUserByEmail = async (email) => {
     },
   });
 };
-export const findTeamUserByEmail = async (email) => {
-  return await prisma.teamUser.findUnique({
+export const findTeamUserByEmail = async (email, teamId) => {
+  return await prisma.teamUser.findFirst({
     where: {
       user: {
         email: email,
+      },
+      team: {
+        id: teamId,
       },
     },
   });
