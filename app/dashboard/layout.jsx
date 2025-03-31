@@ -3,6 +3,7 @@ import { SiteHeader } from "~/components/site-header";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
 import { Skeleton } from "~/components/ui/skeleton";
+
 import {
   IconFilterCheck,
   IconReceipt,
@@ -12,7 +13,7 @@ import {
   IconCalendarDollar,
   IconFolderFilled,
   IconCategory2,
-} from "@tabler/icons-react";
+} from "~/components/ui/icons";
 import { parseCookies } from "~/utils/helperFunctions";
 
 const data = {

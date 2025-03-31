@@ -1,4 +1,4 @@
-import { IconCirclePlusFilled } from "@tabler/icons-react";
+import { IconCirclePlusFilled } from "~/components/ui/icons";
 import { useEffect } from "react";
 import { Form } from "react-router";
 import { toast } from "sonner";

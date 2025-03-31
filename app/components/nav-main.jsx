@@ -1,5 +1,5 @@
 import { Dialog } from "@radix-ui/react-dialog";
-import { IconCirclePlusFilled } from "@tabler/icons-react";
+import { IconCirclePlusFilled } from "./ui/icons";
 import { Link } from "react-router";
 
 import {
@@ -25,7 +25,7 @@ export function NavMain({ items, activeNavItem }) {
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {items.map((item,i) => (
+          {items.map((item, i) => (
             <SidebarMenuItem key={i}>
               <Link to={`${selectedTeam.teamId}/${item.url}`}>
                 <SidebarMenuButton

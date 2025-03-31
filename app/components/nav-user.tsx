@@ -1,10 +1,6 @@
-import {
-  IconCreditCard,
-  IconDotsVertical,
+import { IconDotsVertical,
   IconLogout,
-  IconNotification,
-  IconUserCircle,
-} from "@tabler/icons-react";
+  IconUserCircle, } from "./ui/icons";
 import { useNavigate } from "react-router";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
