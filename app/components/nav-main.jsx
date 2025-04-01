@@ -1,7 +1,4 @@
-import { Dialog } from "@radix-ui/react-dialog";
-import { IconCirclePlusFilled } from "./ui/icons";
 import { Link } from "react-router";
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,13 +6,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { DialogTrigger } from "./ui/dialog";
-import { SourceForm } from "~/dashboard/create-source-form";
-import { useAuthStore, useDialogStore } from "~/utils/store";
+import { useAuthStore } from "~/utils/store";
 
 export function NavMain({ items, activeNavItem }) {
-  const open = useDialogStore((state) => state.open);
-  const toggleOpen = useDialogStore((state) => state.toggleOpen);
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
 
   if (!selectedTeam) {

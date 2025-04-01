@@ -10,9 +10,8 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useDialogStore } from "~/utils/store";
 
-export function SourceForm({ categories }) {
+export function SourceForm({ categories, toggleOpen }) {
   const formLayout = [
     {
       fields: [
@@ -65,7 +64,6 @@ export function SourceForm({ categories }) {
       ],
     },
   ];
-  const toggleOpen = useDialogStore((state) => state.toggleOpen);
   const [formData, setFormData] = useState(() => {
     const initialState = {};
     formLayout.forEach((row) => {
@@ -82,7 +80,7 @@ export function SourceForm({ categories }) {
   };
 
   return (
-    <DialogContent className="!w-[800px]">
+    <DialogContent className="!w-[800px]" toggleOpen={toggleOpen}>
       <DialogHeader>
         <DialogTitle>Create a new source</DialogTitle>
         <DialogDescription>
@@ -132,7 +130,9 @@ export function SourceForm({ categories }) {
         </div>
 
         <DialogFooter>
-          <Button type="submit">Create Source</Button>
+          <Button name="intent" value="add" type="submit">
+            Create Source
+          </Button>
         </DialogFooter>
       </Form>
     </DialogContent>

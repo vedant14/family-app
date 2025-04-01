@@ -44,12 +44,7 @@ function DialogOverlay({
   );
 }
 
-function DialogContent({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
-  const toggleOpen = useDialogStore((state) => state.toggleOpen);
+function DialogContent({ className, children, toggleOpen, ...props }: any) {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />

@@ -46,8 +46,6 @@ export default function Categories() {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Categories</h1>
-
-      {/* Add Category Form */}
       <Form method="post" className="mb-4 flex gap-2">
         <input
           type="text"
@@ -67,8 +65,6 @@ export default function Categories() {
           Add
         </button>
       </Form>
-
-      {/* List of Categories */}
       <ul>
         {categories.map((category) => (
           <li
@@ -77,7 +73,6 @@ export default function Categories() {
           >
             <span>{category.categoryName}</span>
             <div className="flex gap-2">
-              {/* Edit Form */}
               <Form method="post" className="flex gap-2">
                 <input type="hidden" name="id" value={category.id} />
                 <input
@@ -95,8 +90,6 @@ export default function Categories() {
                   Edit
                 </button>
               </Form>
-
-              {/* Delete Button */}
               <Form method="post">
                 <input type="hidden" name="id" value={category.id} />
                 <button

@@ -8,12 +8,12 @@ datasource db {
 }
 
 model Team {
-  id       Int        @id @default(autoincrement())
-  name     String?
-  users    TeamUser[] // Many-to-many relationship via TeamUser
-  Category Category[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime?        @updatedAt
+  id        Int        @id @default(autoincrement())
+  name      String?
+  users     TeamUser[] // Many-to-many relationship via TeamUser
+  Category  Category[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?  @updatedAt
 }
 
 model User {
@@ -31,16 +31,17 @@ model User {
 }
 
 model TeamUser {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   teamId       Int
   userId       Int
-  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team         Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Ledger[]
   sources      Source[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+
   @@unique([teamId, userId]) // Ensures a user can't join the same team twice
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime?        @updatedAt
 }
 
 model Ledger {
@@ -76,6 +77,7 @@ model Source {
   categoryId        Int?
   defaultCategory   Category?        @relation(fields: [categoryId], references: [id])
   defaultType       TransactionType?
+  status            Status           @default(CREATED)
   rulePriority      Int              @default(0)
   extracts          Ledger[]
   createdAt         DateTime         @default(now())
@@ -87,15 +89,21 @@ enum SourceType {
   API
 }
 
+enum Status {
+  ACTIVE
+  CREATED
+  INACTIVE
+}
+
 model Category {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   categoryName String
   teamId       Int
-  team         Team     @relation(fields: [teamId], references: [id])
+  team         Team      @relation(fields: [teamId], references: [id])
   ledgers      Ledger[]
   sources      Source[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime?        @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
 }
 
 enum TransactionType {
