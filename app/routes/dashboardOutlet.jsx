@@ -12,11 +12,19 @@ export async function loader({ request, params }) {
   const header = Object.fromEntries(request.headers);
   const cookie = parseCookies(header.cookie);
   if (!cookie) {
-    return redirect("/login"); // Redirect if no cookie
+    return redirect("/login", {
+      headers: {
+        "Set-Cookie": "user=; path=/; max-age=0",
+      },
+    }); 
   }
   const verifyUser = await verifyIdToken(cookie.user);
   if (!verifyUser) {
-    return redirect("/login"); // Redirect if no cookie
+    return redirect("/login", {
+      headers: {
+        "Set-Cookie": "user=; path=/; max-age=0",
+      },
+    });
   }
   let user;
   if (verifyUser.auth === false && verifyUser.email) {
@@ -25,7 +33,11 @@ export async function loader({ request, params }) {
     user = await findUserByEmail(verifyUser.email);
   }
   if (!user || !user.teams) {
-    return redirect("/login"); // Redirect if user not found
+    return redirect("/login", {
+      headers: {
+        "Set-Cookie": "user=; path=/; max-age=0",
+      },
+    }); 
   }
 
   const teamId = Number(params.teamId);

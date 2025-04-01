@@ -33,9 +33,9 @@ export const IconDotsVertical = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-dots-vertical"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -52,9 +52,9 @@ export const IconLogout = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-logout"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -71,9 +71,9 @@ export const IconUserCircle = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-user-circle"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -91,9 +91,9 @@ export const IconFilterCheck = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-filter-check"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -109,9 +109,9 @@ export const IconReceipt = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-receipt"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -126,9 +126,9 @@ export const IconSparkles = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-sparkles"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -143,9 +143,9 @@ export const IconCardboards = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-cardboards"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -162,9 +162,9 @@ export const IconUsers = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-users"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -182,9 +182,9 @@ export const IconCalendarDollar = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-calendar-dollar"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -204,9 +204,9 @@ export const IconFolderCheck = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-folder-check"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -222,9 +222,9 @@ export const IconCategory2 = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-category-2"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -242,9 +242,9 @@ export const IconTrendingDown = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-trending-down"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -260,9 +260,9 @@ export const IconTrendingUp = (props) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     class="icon icon-tabler icons-tabler-outline icon-tabler-trending-up"
   >
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />

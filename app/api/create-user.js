@@ -44,9 +44,8 @@ export const action = async ({ request }) => {
       },
     });
 
-    if (!existingTeamUser) {
+    if (!existingTeamUser || existingTeamUser.length === 0) {
       console.log(`Creating a new team for ${user.email}`);
-
       const newTeam = await prisma.team.create({
         data: {
           name: `${profileData.name}'s Team`,
@@ -54,7 +53,7 @@ export const action = async ({ request }) => {
       });
 
       // Link user to the new team in TeamUser
-      let existingTeamUser = await prisma.teamUser.create({
+      existingTeamUser = await prisma.teamUser.create({
         data: {
           teamId: newTeam.id,
           userId: user.id,
