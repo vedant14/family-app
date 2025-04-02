@@ -10,6 +10,7 @@ export default [
       route("categories", "./routes/team/categories.jsx"),
     ]),
   ]),
+  route("logout", "./routes/auth/logout.jsx"),
   route("login", "./routes/auth/login.jsx"),
   route("api/create-user", "./api/create-user.js"),
   route("api/fetch-token", "./api/fetch-token.js"),

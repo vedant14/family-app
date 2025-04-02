@@ -301,18 +301,6 @@ function SourceRow({ source, categories }) {
       />
       <TableCells.Input
         formId={formId}
-        name="payeeRegex"
-        className={COLUMN_WIDTHS.regex}
-        value={source.payeeRegex}
-      />
-      <TableCells.Input
-        formId={formId}
-        name="payeeRegexBackup"
-        className={COLUMN_WIDTHS.regex}
-        value={source.payeeRegexBackup}
-      />
-      <TableCells.Input
-        formId={formId}
         name="amountRegex"
         className={COLUMN_WIDTHS.regex}
         value={source.amountRegex}
@@ -322,6 +310,18 @@ function SourceRow({ source, categories }) {
         name="amountRegexBackup"
         className={COLUMN_WIDTHS.regex}
         value={source.amountRegexBackup}
+      />
+      <TableCells.Input
+        formId={formId}
+        name="payeeRegex"
+        className={COLUMN_WIDTHS.regex}
+        value={source.payeeRegex}
+      />
+      <TableCells.Input
+        formId={formId}
+        name="payeeRegexBackup"
+        className={COLUMN_WIDTHS.regex}
+        value={source.payeeRegexBackup}
       />
       <TableCell className="p-0">
         <select
@@ -531,7 +531,9 @@ export default function Product({ loaderData, actionData }) {
               <TableHead className={COLUMN_WIDTHS.sourceType}>Type *</TableHead>
               <TableHead className="w-[150px]">User</TableHead>
               <TableHead className={COLUMN_WIDTHS.query}>Query</TableHead>
-              <TableHead className={COLUMN_WIDTHS.regex}>Amount Regex</TableHead>
+              <TableHead className={COLUMN_WIDTHS.regex}>
+                Amount Regex
+              </TableHead>
               <TableHead className={COLUMN_WIDTHS.regex}>
                 Amount Regex Backup
               </TableHead>

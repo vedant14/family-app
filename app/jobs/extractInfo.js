@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 async function extractAmountJobs() {
   console.log("Worker started");
   const jobs = await prisma.ledger.findMany({
-    where: { amountExtract: null },
+    where: { status: "CREATED" },
     select: {
       id: true,
       body: true,
@@ -33,6 +33,7 @@ async function extractAmountJobs() {
         await prisma.ledger.update({
           where: { id: job.id },
           data: {
+            status: "EXTRACTED",
             amountExtract: parseFloat(amountFloat),
             payeeExtract: data.payee,
           },
@@ -64,7 +65,6 @@ const extractInfoFromEmail = (
   const cleanedAmountRegexBackup = cleanRegex(amount_regex_backup);
   const cleanedPayeeRegex = cleanRegex(payee_regex);
   const cleanedPayeeRegexBackup = cleanRegex(payee_regex_backup);
-
   const primaryAmountMatch = emailData.match(new RegExp(cleanedAmountRegex));
   if (primaryAmountMatch) {
     data.amount = primaryAmountMatch[1]

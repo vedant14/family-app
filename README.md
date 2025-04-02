@@ -14,7 +14,7 @@
 - [ ] Set teams on login
 - [x] Create custom categories
 - [x] **Fetch emails based on criteria** → Store rules (e.g., sender, subject, keywords) and retrieve relevant emails.  
-	- [ ] Create Crons
+	- [x] Create Crons
 	- [x] Edit source rules
 - [x] **Parse transactions from email** → Extract merchant, amount, and date from email body.  
 #### **Transaction Storage & API**  
@@ -28,7 +28,6 @@
 	- https://v0.dev/chat/community/analytics-dashboard-WUYQbNYP3gt
 	- https://v0.dev/chat/community/financial-dashboard-functional-jUBqSBJsNrz
 - [ ] Reports
-	- See lunch money's screenshots
 	- https://v0.dev/chat/community/next-js-charts-MislIISzd67
 - [ ] **Display categorized spends** → Show spending breakdown by category.  
 - [ ] **Add simple filters & sorting** → Let users view transactions by date, category, or amount.  
@@ -40,17 +39,18 @@
 - [ ] **Implement AI-based categorization** → Auto-assign categories to transactions.  
 
 #### **Deployment & Testing**  
-- [ ] **Deploy backend & frontend** → Use Railway or Render for hosting.
-- [ ] **Test email fetching & API** → Ensure transactions are extracted and categorized correctly.  
+- [x] **Deploy backend & frontend** → Use Railway or Render for hosting.
+- [x] **Test email fetching & API** → Ensure transactions are extracted and categorized correctly.  
 - [ ] **Monitor and refine AI results** → Adjust model behavior based on real data.  
 
 #### Future Scope
-- [ ] One user can have multiple email inboxes.
+- [x] One user can have multiple email inboxes.
 - [ ] Budgets
-	- See lunch money's screenshots
 - [ ] Conversion of EMIs (NoCost and Otherwise)
 - [ ] Goals for no-spend days
 - [ ] Tag expenses using NFC
 - [ ] Show a quote everytime you open the dashboard
 - [ ] Other goals
-- [ ] Categories have to by dynamic
+- [x] Categories have to by dynamic
+
+

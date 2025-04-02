@@ -59,6 +59,7 @@ model Ledger {
   emailId                String?          @unique
   sourceId               Int
   source                 Source           @relation(fields: [sourceId], references: [id])
+  status                 LedgerStatus     @default(CREATED)
   createdAt              DateTime         @default(now())
   updatedAt              DateTime?        @updatedAt
 }
@@ -87,6 +88,12 @@ model Source {
 enum SourceType {
   MAIL
   API
+}
+
+enum LedgerStatus {
+  CREATED
+  IGNORE
+  EXTRACTED
 }
 
 enum Status {
