@@ -1,8 +1,26 @@
 // gmail-fetch-cron.js
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
+// Environment variables validation
+const BASE_URL = process.env.BASE_URL;
+if (!BASE_URL) {
+  console.error("❌ BASE_URL environment variable is not set");
+  process.exit(1);
+}
+
+// Configuration
+const CONFIG = {
+  daysToFetch: process.env.DAYS_TO_FETCH
+    ? parseInt(process.env.DAYS_TO_FETCH)
+    : 2,
+  maxRetries: process.env.MAX_RETRIES ? parseInt(process.env.MAX_RETRIES) : 3,
+  retryDelay: process.env.RETRY_DELAY
+    ? parseInt(process.env.RETRY_DELAY)
+    : 1000,
+};
+
+const prisma = new PrismaClient();
 function getBody(emailData) {
   let body = "";
   if (emailData.payload.body?.data) {
@@ -28,63 +46,75 @@ function getBody(emailData) {
 async function refreshAccessToken(userId, email) {
   console.log(`🔄 Fetching new access token for ${email}...`);
   try {
-    const response = await axios.post(
-      `${process.env.BASE_URL}/api/fetch-token`,
-      {
-        email,
-      }
-    );
-    if (response.status !== 200 || !response.data.accessToken) {
+    const response = await axios.post(`${BASE_URL}/api/fetch-token`, { email });
+
+    if (response.status !== 200 || !response.data.user.accessToken) {
       throw new Error("❌ Failed to refresh access token");
     }
-    await prisma.user.update({
-      where: { id: userId },
-      data: { accessToken: response.data.accessToken },
-    });
 
-    return response.data.accessToken;
+    return response.data.user.accessToken;
   } catch (error) {
-    console.error("❌ Error refreshing token:", error);
-    throw error;
+    console.error("❌ Error refreshing token:", error.message);
+    throw new Error(`Failed to refresh token for ${email}: ${error.message}`);
   }
 }
 
-async function processSource(sourceObj) {
-  const days = 2;
+async function fetchWithRetry(url, token, retries = 0) {
+  try {
+    return await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (error) {
+    if (error.response?.status === 401 || retries >= CONFIG.maxRetries) {
+      throw error; // Let the calling function handle 401 or max retries reached
+    }
+
+    console.log(`Retrying (${retries + 1}/${CONFIG.maxRetries})...`);
+    await new Promise((resolve) => setTimeout(resolve, CONFIG.retryDelay));
+    return fetchWithRetry(url, token, retries + 1);
+  }
+}
+
+async function processSource(sourceObj, initialToken = null, retryCount = 0) {
   const sourceId = sourceObj.id;
-
-  console.log(`Processing source: ${sourceObj.sourceName} (ID: ${sourceId})`);
-
+  const sourceName = sourceObj.sourceName;
+  // Input validation
   if (!sourceObj || !sourceObj.user) {
     console.error("Source or user not found", { sourceId });
     return { error: "Source or user not found", sourceId };
   }
 
+  // If we've reached max retries, stop retrying
+  if (retryCount >= CONFIG.maxRetries) {
+    console.error(
+      `Max retries reached for source ${sourceName} (ID: ${sourceId})`
+    );
+    return { error: "Max retries reached", sourceId };
+  }
+
+  console.log(`Processing source: ${sourceName} (ID: ${sourceId})`);
   const today = new Date();
   const pastDate = new Date(today);
-  pastDate.setDate(today.getDate() - days);
+  pastDate.setDate(today.getDate() - CONFIG.daysToFetch);
   const afterDate = pastDate.toISOString().split("T")[0].replace(/-/g, "/");
-
   let queryParts = sourceObj.query ? [`${sourceObj.query}`] : [];
   queryParts.push(`after:${afterDate}`);
   const query = queryParts.join(" ");
-  let accessToken = sourceObj.user.user.accessToken;
+  let accessToken = initialToken || sourceObj.user.user.accessToken;
 
   try {
-    const listResponse = await axios.get(
+    const listResponse = await fetchWithRetry(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(
         query
       )}`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      accessToken
     );
 
     const messages = listResponse.data.messages || [];
 
     if (messages.length === 0) {
       console.log(`No emails found for query: ${query}`);
-      return { message: `No emails found for query: ${query}` };
+      return { message: `No emails found for query: ${query}`, sourceId };
     }
 
     // Fetch existing email IDs to avoid duplicates
@@ -100,108 +130,139 @@ async function processSource(sourceObj) {
 
     if (newMessages.length === 0) {
       console.log(`All emails already processed for source: ${sourceId}`);
-      return { message: "All emails already processed." };
+      return { message: "All emails already processed.", sourceId };
     }
 
     console.log(
       `Processing ${newMessages.length} new emails for source: ${sourceId}`
     );
 
-    const emails = await Promise.all(
-      newMessages.map(async (message) => {
-        try {
-          const messageResponse = await axios.get(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
+    // Process emails within a transaction
+    const processedEmails = await prisma
+      .$transaction(async (tx) => {
+        const results = [];
+
+        for (const message of newMessages) {
+          try {
+            const messageResponse = await fetchWithRetry(
+              `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+              accessToken
+            );
+
+            const emailData = messageResponse.data;
+            const headers = emailData.payload.headers || [];
+            const subject =
+              headers.find((header) => header.name === "Subject")?.value ||
+              "No Subject";
+            const emailDate =
+              headers.find((header) => header.name === "Date")?.value || "";
+            const receivedDate = new Date(emailDate);
+            const body = getBody(emailData);
+
+            // Upsert into database within transaction
+            const result = await tx.ledger.upsert({
+              where: { emailId: message.id },
+              update: {
+                date: receivedDate,
+                userId: sourceObj.user.id,
+                emailSubject: subject,
+                body,
+                categoryId: sourceObj.defaultCategory?.id,
+                transactionTypeExtract: sourceObj.defaultType,
+                sourceId: sourceId,
+              },
+              create: {
+                date: receivedDate,
+                userId: sourceObj.user.id,
+                emailSubject: subject,
+                body,
+                categoryId: sourceObj.defaultCategory?.id,
+                transactionTypeExtract: sourceObj.defaultType,
+                emailId: message.id,
+                sourceId: sourceId,
+              },
+            });
+            console.log(`Processed email: ${message.id} (${subject})`);
+            results.push({ id: message.id, sourceName, subject });
+          } catch (emailError) {
+            console.error(
+              `❌ Error processing email ${message.id}:`,
+              emailError.message
+            );
+            throw emailError; // Rollback transaction on error
+          }
+        }
+        return results;
+      })
+      .catch(async (txError) => {
+        if (txError.response?.status === 401) {
+          console.log(
+            `🔄 Token expired during transaction. Fetching new token...`
           );
-
-          const emailData = messageResponse.data;
-          const headers = emailData.payload.headers || [];
-          const subject =
-            headers.find((header) => header.name === "Subject")?.value ||
-            "No Subject";
-          const emailDate =
-            headers.find((header) => header.name === "Date")?.value || "";
-          const receivedDate = new Date(emailDate);
-          const body = getBody(emailData);
-
-          // Upsert into database
-          await prisma.ledger.upsert({
-            where: { emailId: message.id },
-            update: {
-              date: receivedDate,
-              userId: sourceObj.user.id,
-              emailSubject: subject,
-              body,
-              categoryId: sourceObj.defaultCategory?.id,
-              transactionTypeExtract: sourceObj.defaultType,
-              sourceId: sourceId,
-            },
-            create: {
-              date: receivedDate,
-              userId: sourceObj.user.id,
-              emailSubject: subject,
-              body,
-              categoryId: sourceObj.defaultCategory?.id,
-              transactionTypeExtract: sourceObj.defaultType,
-              emailId: message.id,
-              sourceId: sourceId,
-            },
-          });
-
-          console.log(`Processed email: ${message.id} (${subject})`);
-          return { id: message.id, subject };
-        } catch (emailError) {
-          if (emailError.response?.status === 401) {
-            console.log(`🔄 Token expired. Fetching new token...`);
-            accessToken = await refreshAccessToken(
+          try {
+            const newToken = await refreshAccessToken(
               sourceObj.user.user.id,
               sourceObj.user.user.email
             );
-            // Retry with new token
-            return processSource(sourceObj);
+            // Retry with new token and increment retry count
+            return processSource(sourceObj, newToken, retryCount + 1);
+          } catch (refreshError) {
+            console.error(
+              `Failed to refresh token for source ${sourceId}:`,
+              refreshError.message
+            );
+            return { error: "Failed to refresh token", sourceId };
           }
-
-          console.error(
-            `❌ Error processing email ${message.id}:`,
-            emailError.response?.data || emailError.message
-          );
-          return null;
         }
-      })
-    );
 
-    const processedEmails = emails.filter(Boolean);
-    console.log(
-      `Successfully processed ${processedEmails.length} emails for source: ${sourceId}`
-    );
-    return processedEmails;
+        // Other transaction errors
+        console.error(
+          `Transaction error for source ${sourceId}:`,
+          txError.message
+        );
+        return { error: txError.message, sourceId };
+      });
+
+    if (Array.isArray(processedEmails)) {
+      console.log(
+        `Successfully processed ${processedEmails.length} emails for source: ${sourceId}`
+      );
+    }
+
+    return {
+      sourceId,
+      sourceName,
+      result: processedEmails,
+    };
   } catch (error) {
+    // Handle token expiration
     if (error.response?.status === 401) {
       console.log(`🔄 Token expired. Fetching new token...`);
       try {
-        accessToken = await refreshAccessToken(
+        const newToken = await refreshAccessToken(
           sourceObj.user.user.id,
           sourceObj.user.user.email
         );
-        // Retry with new token
-        return processSource(sourceObj);
+        // Retry with new token and increment retry count
+        return processSource(sourceObj, newToken, retryCount + 1);
       } catch (refreshError) {
         console.error(
           `Failed to refresh token for source ${sourceId}:`,
-          refreshError
+          refreshError.message
         );
         return { error: "Failed to refresh token", sourceId };
       }
-    } else {
-      console.error(`Error processing source ${sourceId}:`, error.message);
-      return { error: error.message, sourceId };
     }
+
+    // Other errors
+    console.error(`Error processing source ${sourceId}:`, error.message);
+    return { error: error.message, sourceId };
   }
 }
 
+/**
+ * Main function
+ */
 async function main() {
   console.log("Starting Gmail fetch cron job...");
 
@@ -247,19 +308,20 @@ async function main() {
     const results = [];
     for (const source of sources) {
       const result = await processSource(source);
-      results.push({
-        sourceId: source.id,
-        sourceName: source.sourceName,
-        result,
-      });
+      results.push(result);
     }
-
-    console.log("Gmail fetch cron job completed successfully");
-    console.log("Results:", JSON.stringify(results, null, 2));
+    console.log(
+      "Results summary:",
+      results.map((r) => ({
+        sourceId: r.sourceId,
+        status: Array.isArray(r.result) ? "success" : "error",
+        count: Array.isArray(r.result) ? r.result.length : 0,
+      }))
+    );
   } catch (error) {
-    console.error("❌ Error in cron job:", error);
+    console.error("❌ Error in cron job:", error.message);
   } finally {
-    // Close Prisma client connection
+    // Always close Prisma client connection properly
     await prisma.$disconnect();
   }
 }
@@ -267,5 +329,8 @@ async function main() {
 // Run the main function
 main().catch((error) => {
   console.error("Fatal error in cron job:", error);
-  process.exit(1);
+  // Ensure Prisma connection is closed on fatal error
+  prisma.$disconnect().then(() => {
+    process.exit(1);
+  });
 });
