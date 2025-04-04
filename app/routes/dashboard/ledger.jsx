@@ -1,6 +1,6 @@
 import { IconCirclePlusFilled } from "~/components/ui/icons";
 import { useEffect } from "react";
-import { Form } from "react-router";
+import { Form, Link } from "react-router";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Dialog } from "~/components/ui/dialog";
@@ -100,9 +100,13 @@ export default function Product({ loaderData }) {
                 <TableCell>{item.user.user.email}</TableCell>
                 <TableCell>{item.emailSubject}</TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                    Edit
-                  </a>
+                  <Link
+                    to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
+                    className="text-indigo-600 hover:text-indigo-900"
+                    target="_blank"
+                  >
+                    View
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}
