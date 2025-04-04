@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { TableCells } from "~/components/ui/tableCells";
 import { findTeamUserByEmail, verifyIdToken } from "~/utils/authHelpers";
 import { parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
@@ -231,62 +232,21 @@ export function HydrateFallback() {
   return <div>Loading...</div>;
 }
 
-const TableCells = {
-  Input: ({
-    formId,
-    name,
-    value,
-    type = "text",
-    className = "",
-    readOnly = false,
-    onChange = null,
-  }) => (
-    <TableCell className="p-0">
-      <input
-        type={type}
-        name={name}
-        defaultValue={value}
-        form={formId}
-        readOnly={readOnly}
-        onChange={onChange}
-        className={`h-full min-h-[38px] px-4 py-2 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${
-          readOnly ? "bg-gray-100" : "bg-transparent"
-        } ${className}`}
-      />
-    </TableCell>
-  ),
-  Text: ({ children, className = "" }) => (
-    <TableCell className={`px-4 py-2 ${className}`}>{children}</TableCell>
-  ),
-  Select: ({ formId, name, value, className = "", children }) => (
-    <TableCell className={`p-0 ${className}`}>
-      <select
-        name={name}
-        form={formId}
-        defaultValue={value}
-        className={`h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
-      >
-        {children}
-      </select>
-    </TableCell>
-  ),
-};
-
-function SourceRow({ source, categories }) {
+function SourceRow({ source, categories, i }) {
   const formId = `edit-form-${source.id}`;
   return (
-    <TableRow>
+    <TableRow className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
       <TableCells.Text>{source.id}</TableCells.Text>
       <TableCells.Input
         formId={formId}
         name="sourceName"
         className={COLUMN_WIDTHS.sourceName}
-        value={source.sourceName}
+        defaultValue={source.sourceName}
       />
       <TableCells.Select
         formId={formId}
         name="sourceType"
-        value={source.sourceType}
+        defaultValue={source.sourceType}
         className={COLUMN_WIDTHS.sourceType}
       >
         <option value="MAIL">MAIL</option>
@@ -297,31 +257,31 @@ function SourceRow({ source, categories }) {
         formId={formId}
         name="query"
         className={COLUMN_WIDTHS.query}
-        value={source.query}
+        defaultValue={source.query}
       />
       <TableCells.Input
         formId={formId}
         name="amountRegex"
         className={COLUMN_WIDTHS.regex}
-        value={source.amountRegex}
+        defaultValue={source.amountRegex}
       />
       <TableCells.Input
         formId={formId}
         name="amountRegexBackup"
         className={COLUMN_WIDTHS.regex}
-        value={source.amountRegexBackup}
+        defaultValue={source.amountRegexBackup}
       />
       <TableCells.Input
         formId={formId}
         name="payeeRegex"
         className={COLUMN_WIDTHS.regex}
-        value={source.payeeRegex}
+        defaultValue={source.payeeRegex}
       />
       <TableCells.Input
         formId={formId}
         name="payeeRegexBackup"
         className={COLUMN_WIDTHS.regex}
-        value={source.payeeRegexBackup}
+        defaultValue={source.payeeRegexBackup}
       />
       <TableCell className="p-0">
         <select
@@ -489,7 +449,7 @@ function NewSourceRow({ categories, actionData }) {
   );
 }
 
-export default function Product({ loaderData, actionData }) {
+export default function Sources({ loaderData, actionData }) {
   const [addFormOpen, setAddFormOpen] = useState(false);
   const toggleOpen = (form) => form === "add" && setAddFormOpen(!addFormOpen);
   const { sources, categories } = loaderData;
@@ -552,11 +512,12 @@ export default function Product({ loaderData, actionData }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sources.map((source) => (
+            {sources.map((source, i) => (
               <SourceRow
                 key={source.id}
                 source={source}
                 categories={categories}
+                i={i}
               />
             ))}
             <NewSourceRow categories={categories} actionData={actionData} />
