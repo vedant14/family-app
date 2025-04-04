@@ -173,7 +173,6 @@ const LedgerRow = ({ item, i, categories }) => {
 
 export default function Product({ loaderData }) {
   const { transactions, categories } = loaderData;
-  console.log(transactions);
   return (
     <div>
       <div className="rounded-md border overflow-hidden">
