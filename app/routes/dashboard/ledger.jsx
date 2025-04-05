@@ -82,12 +82,14 @@ export async function action({ request, params }) {
   if (intent === "edit") {
     const ledgerId = Number(formData.get("id"));
     let data = Object.fromEntries(formData);
-    const { transactionTypeExtract, amountExtract, payeeExtract } = data;
+    const { transactionTypeExtract, amountExtract, payeeExtract, categoryId } =
+      data;
     const source = await prisma.ledger.update({
       where: { id: ledgerId },
       data: {
         status: "MANUAL",
         transactionTypeExtract,
+        categoryId: Number(categoryId),
         amountExtract: Number(amountExtract),
         payeeExtract,
       },
@@ -165,15 +167,17 @@ const LedgerRow = ({ item, i, categories }) => {
             <span>Save</span>
           </Button>
         </Form>
-        <Link
-          to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
-          className="text-indigo-600 hover:text-indigo-900"
-          target="_blank"
-        >
-          <Button className="bg-amber-600 text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8">
-            View
-          </Button>
-        </Link>
+        {item.emailId && (
+          <Link
+            to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
+            className="text-indigo-600 hover:text-indigo-900"
+            target="_blank"
+          >
+            <Button className="bg-amber-600 text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8">
+              View
+            </Button>
+          </Link>
+        )}
       </TableCell>
     </TableRow>
   );
