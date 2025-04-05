@@ -60,8 +60,8 @@ export async function loader({ params }) {
       },
     },
     orderBy: {
-      date: "desc"
-    }
+      date: "desc",
+    },
   });
   const categories = await prisma.category.findMany({
     where: {
@@ -86,6 +86,7 @@ export async function action({ request, params }) {
     const source = await prisma.ledger.update({
       where: { id: ledgerId },
       data: {
+        status: "EXTRACTED",
         transactionTypeExtract,
         amountExtract: Number(amountExtract),
         payeeExtract,
