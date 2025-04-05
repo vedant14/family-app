@@ -59,6 +59,9 @@ export async function loader({ params }) {
         },
       },
     },
+    orderBy: {
+      date: "desc"
+    }
   });
   const categories = await prisma.category.findMany({
     where: {
