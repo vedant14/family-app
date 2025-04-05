@@ -32,6 +32,7 @@ export async function loader({ params }) {
       payeeExtract: true,
       category: {
         select: {
+          id: true,
           categoryName: true,
         },
       },
@@ -129,7 +130,7 @@ const LedgerRow = ({ item, i, categories }) => {
           name="categoryId"
           form={formId}
           className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
-          defaultValue={item.category?.categoryName || ""}
+          defaultValue={item.category?.id || ""}
         >
           <option value="" disabled>
             Select category
