@@ -86,7 +86,7 @@ export async function action({ request, params }) {
     const source = await prisma.ledger.update({
       where: { id: ledgerId },
       data: {
-        status: "EXTRACTED",
+        status: "MANUAL",
         transactionTypeExtract,
         amountExtract: Number(amountExtract),
         payeeExtract,
@@ -102,7 +102,11 @@ export function HydrateFallback() {
 const LedgerRow = ({ item, i, categories }) => {
   const formId = `edit-form-${item.id}`;
   return (
-    <TableRow key={item.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+    <TableRow
+      key={item.id}
+      id={item.id}
+      className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+    >
       <TableCell>{formatDate(item.date)}</TableCell>
       <TableCell className="p-0 w-[500px]">
         <select

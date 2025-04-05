@@ -94,6 +94,9 @@ enum LedgerStatus {
   CREATED
   IGNORE
   EXTRACTED
+  JUNK
+  MANUAL
+  DUPLICATE
 }
 
 enum Status {

@@ -11,16 +11,17 @@
 - [x] Show Source Rules ✅ 2025-03-28
 - [x] Create teams ✅ 2025-03-28
 - [x] Add user to team
-- [ ] Set teams on login
+- [x] Set teams on login
 - [x] Create custom categories
 - [x] **Fetch emails based on criteria** → Store rules (e.g., sender, subject, keywords) and retrieve relevant emails.  
 	- [x] Create Crons
 	- [x] Edit source rules
 - [x] **Parse transactions from email** → Extract merchant, amount, and date from email body.  
 #### **Transaction Storage & API**  
-- [ ] **Create GET API for transaction summary** → Return categorized transaction data with filters.  
-- [ ] **Manual categorising transactions** → Allow users to manually move transactions into categories.  
+- [x] **Create GET API for transaction summary** → Return categorized transaction data with filters.  
+- [x] **Manual categorising transactions** → Allow users to manually move transactions into categories.  
 	- For drag and drop perhaps https://stackblitz.com/edit/react-1j37eg?file=src%2FApp.js
+	
 #### **Frontend Dashboard**  
 - [x] **Set up mobile-friendly UI** → Show recent transactions, summaries, and charts. ✅ 2025-03-27
 	- Use ShadCn and/or v0

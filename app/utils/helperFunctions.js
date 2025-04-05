@@ -58,3 +58,45 @@ const getDaySuffix = (day) => {
       return "th";
   }
 };
+
+const cleanRegex = (regex) => {
+  return typeof regex === "string"
+    ? regex.replace(/^\/|\/$/g, "")
+    : regex.toString().replace(/^\/|\/$/g, "");
+};
+
+export const extractInfoFromEmail = (
+  emailData,
+  amount_regex,
+  amount_regex_backup,
+  payee_regex,
+  payee_regex_backup
+) => {
+  const data = {};
+  const cleanedAmountRegex = cleanRegex(amount_regex);
+  const cleanedAmountRegexBackup = cleanRegex(amount_regex_backup);
+  const cleanedPayeeRegex = cleanRegex(payee_regex);
+  const cleanedPayeeRegexBackup = cleanRegex(payee_regex_backup);
+  const primaryAmountMatch = emailData.match(new RegExp(cleanedAmountRegex));
+  if (primaryAmountMatch) {
+    data.amount = primaryAmountMatch[1]
+      ? primaryAmountMatch[1]
+      : primaryAmountMatch[0];
+  } else {
+    const backupAmountMatch = emailData.match(
+      new RegExp(cleanedAmountRegexBackup)
+    );
+    data.amount = backupAmountMatch ? backupAmountMatch[0] : null;
+  }
+
+  const primaryPayeeMatch = emailData.match(new RegExp(cleanedPayeeRegex));
+  if (primaryPayeeMatch) {
+    data.payee = primaryPayeeMatch[0];
+  } else {
+    const backupPayeeMatch = emailData.match(
+      new RegExp(cleanedPayeeRegexBackup)
+    );
+    data.payee = backupPayeeMatch ? backupPayeeMatch[0] : null;
+  }
+  return data;
+};

@@ -1,4 +1,3 @@
-// If the access token is refereshed in once, then call it again
 import axios from "axios";
 import { getBody } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
@@ -27,18 +26,19 @@ async function refreshAccessToken(userId, email) {
   }
 }
 
-export const loader = async ({ params }) => {
-  const days = 2;
-  const sourceId = Number(params.sourceId);
+export const action = async ({ request }) => {
+  let { sourceId, days } = await request.json();
+  if (!days) {
+    days = 2;
+  }
   if (isNaN(sourceId)) {
     return new Response(JSON.stringify({ error: "Invalid sourceId format" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
-
   const sourceObj = await prisma.source.findUnique({
-    where: { id: sourceId },
+    where: { id: Number(sourceId) },
     select: {
       query: true,
       defaultCategory: {
@@ -61,7 +61,6 @@ export const loader = async ({ params }) => {
       },
     },
   });
-
   if (!sourceObj || !sourceObj.user) {
     return new Response(
       JSON.stringify({
@@ -75,7 +74,6 @@ export const loader = async ({ params }) => {
       }
     );
   }
-
   const today = new Date();
   const pastDate = new Date(today);
   pastDate.setDate(today.getDate() - days);
@@ -141,18 +139,8 @@ export const loader = async ({ params }) => {
           const body = getBody(emailData);
 
           // Upsert into database
-          await prisma.ledger.upsert({
-            where: { emailId: message.id },
-            update: {
-              date: receivedDate,
-              userId: sourceObj.user.id,
-              emailSubject: subject,
-              body,
-              categoryId: sourceObj.defaultCategory?.id,
-              transactionTypeExtract: sourceObj.defaultType,
-              sourceId: sourceId,
-            },
-            create: {
+          await prisma.ledger.create({
+            data: {
               date: receivedDate,
               userId: sourceObj.user.id,
               emailSubject: subject,
@@ -160,7 +148,7 @@ export const loader = async ({ params }) => {
               categoryId: sourceObj.defaultCategory?.id,
               transactionTypeExtract: sourceObj.defaultType,
               emailId: message.id,
-              sourceId: sourceId,
+              sourceId: Number(sourceId),
             },
           });
 

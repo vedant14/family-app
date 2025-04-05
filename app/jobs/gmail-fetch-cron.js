@@ -160,18 +160,8 @@ async function processSource(sourceObj, initialToken = null, retryCount = 0) {
             const body = getBody(emailData);
 
             // Upsert into database within transaction
-            const result = await tx.ledger.upsert({
-              where: { emailId: message.id },
-              update: {
-                date: receivedDate,
-                userId: sourceObj.user.id,
-                emailSubject: subject,
-                body,
-                categoryId: sourceObj.defaultCategory?.id,
-                transactionTypeExtract: sourceObj.defaultType,
-                sourceId: sourceId,
-              },
-              create: {
+            const result = await tx.ledger.create({
+              data: {
                 date: receivedDate,
                 userId: sourceObj.user.id,
                 emailSubject: subject,
@@ -179,7 +169,7 @@ async function processSource(sourceObj, initialToken = null, retryCount = 0) {
                 categoryId: sourceObj.defaultCategory?.id,
                 transactionTypeExtract: sourceObj.defaultType,
                 emailId: message.id,
-                sourceId: sourceId,
+                sourceId: Number(sourceId),
               },
             });
             console.log(`Processed email: ${message.id} (${subject})`);
