@@ -115,7 +115,7 @@ const LedgerRow = ({ item, i, categories }) => {
         <select
           name="transactionTypeExtract"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full px-4 py-0 w-full border-0 focus:outline-none"
           defaultValue={item.transactionTypeExtract}
         >
           <option value="" disabled>
@@ -129,7 +129,7 @@ const LedgerRow = ({ item, i, categories }) => {
         <select
           name="categoryId"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full px-4 py-0 w-full border-0 focus:outline-none"
           defaultValue={item.category?.id || ""}
         >
           <option value="" disabled>
@@ -156,17 +156,18 @@ const LedgerRow = ({ item, i, categories }) => {
       <TableCell>{item.source.sourceName}</TableCell>
       <TableCell>{item.user.user.email}</TableCell>
       <TableCell>{item.emailSubject}</TableCell>
-      <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex space-x-2">
+      <td className="flex space-x-2 py-2 px-12">
         <Form method="post" id={formId}>
           <input type="hidden" name="id" value={item.id} />
-          <Button
+          <button
             name="intent"
             value="edit"
             type="submit"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8"
+            size="sm"
+            className="bg-gray-400 text-primary-foreground hover:bg-primary/70 hover:text-primary-foreground min-w-8 px-4 rounded-md cursor-pointer"
           >
             <span>Save</span>
-          </Button>
+          </button>
         </Form>
         {item.emailId && (
           <Link
@@ -174,12 +175,12 @@ const LedgerRow = ({ item, i, categories }) => {
             className="text-indigo-600 hover:text-indigo-900"
             target="_blank"
           >
-            <Button className="bg-amber-600 text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8">
+            <button className="bg-gray-400 text-primary-foreground hover:bg-primary/70 hover:text-primary-foreground min-w-8 px-4 rounded-md cursor-pointer">
               View
-            </Button>
+            </button>
           </Link>
         )}
-      </TableCell>
+      </td>
     </TableRow>
   );
 };
@@ -187,9 +188,9 @@ const LedgerRow = ({ item, i, categories }) => {
 export default function Product({ loaderData }) {
   const { transactions, categories } = loaderData;
   return (
-    <div>
-      <div className="rounded-md border overflow-hidden">
-        <Table>
+    <div className="rounded-md border overflow-hidden">
+      <div className="overflow-auto scrollbar-hide">
+        <Table className="">
           <TableHeader className="bg-muted sticky top-0 z-10">
             <TableRow>
               <TableHead>Date</TableHead>
