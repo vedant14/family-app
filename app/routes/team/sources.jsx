@@ -295,32 +295,35 @@ function SourceRow({ source, categories, i }) {
             <IconDotsVertical className="text-gray-300" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Form method="post" className="w-full">
-                <input type="hidden" name="id" value={source.id} />
-                <button
-                  type="submit"
-                  name="intent"
-                  value="activate"
-                  className="cursor-pointer w-full text-left"
-                >
-                  Activate
-                </button>
-              </Form>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Form method="post" className="w-full">
-                <input type="hidden" name="id" value={source.id} />
-                <button
-                  type="submit"
-                  name="intent"
-                  value="deactivate"
-                  className="cursor-pointer w-full text-left"
-                >
-                  De-Activate
-                </button>
-              </Form>
-            </DropdownMenuItem>
+            {source.status === "ACTIVE" ? (
+              <DropdownMenuItem>
+                <Form method="post" className="w-full">
+                  <input type="hidden" name="id" value={source.id} />
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="deactivate"
+                    className="cursor-pointer w-full text-left"
+                  >
+                    De-Activate
+                  </button>
+                </Form>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem>
+                <Form method="post" className="w-full">
+                  <input type="hidden" name="id" value={source.id} />
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="activate"
+                    className="cursor-pointer w-full text-left"
+                  >
+                    Activate
+                  </button>
+                </Form>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
