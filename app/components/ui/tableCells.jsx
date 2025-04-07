@@ -21,7 +21,7 @@ export const TableCells = {
     </TableCell>
   ),
   Text: ({ children, className = "" }) => (
-    <TableCell className={`px-4 py-2 ${className}`}>{children}</TableCell>
+    <TableCell className={`px-4 ${className}`}>{children}</TableCell>
   ),
   Select: ({ formId, name, value, className = "", children }) => (
     <TableCell className={`p-0 ${className}`}>
@@ -29,7 +29,7 @@ export const TableCells = {
         name={name}
         form={formId}
         defaultValue={value}
-        className={`h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
+        className={`h-full px-4 w-full border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
       >
         {children}
       </select>

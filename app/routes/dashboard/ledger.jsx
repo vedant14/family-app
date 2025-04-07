@@ -1,8 +1,7 @@
-import { IconCirclePlusFilled } from "~/components/ui/icons";
+import { IconCirclePlusFilled, IconDotsVertical } from "~/components/ui/icons";
 import { useEffect } from "react";
 import { Form, Link } from "react-router";
 import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
 import { Dialog } from "~/components/ui/dialog";
 import {
   Table,
@@ -18,6 +17,14 @@ import { formatDate, parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
 import { TableCells } from "~/components/ui/tableCells";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 export async function loader({ params }) {
   const transactions = await prisma.ledger.findMany({
@@ -59,6 +66,9 @@ export async function loader({ params }) {
           },
         },
       },
+      status: {
+        in: ["CREATED", "EXTRACTED", "MANUAL"],
+      },
     },
     orderBy: {
       date: "desc",
@@ -80,8 +90,8 @@ export async function loader({ params }) {
 export async function action({ request, params }) {
   let formData = await request.formData();
   const intent = formData.get("intent");
+  const ledgerId = Number(formData.get("id"));
   if (intent === "edit") {
-    const ledgerId = Number(formData.get("id"));
     let data = Object.fromEntries(formData);
     const { transactionTypeExtract, amountExtract, payeeExtract, categoryId } =
       data;
@@ -96,6 +106,27 @@ export async function action({ request, params }) {
       },
     });
     return true;
+  } else if (intent === "ignore") {
+    await prisma.ledger.update({
+      where: { id: ledgerId },
+      data: {
+        status: "IGNORE",
+      },
+    });
+  } else if (intent === "duplicate") {
+    await prisma.ledger.update({
+      where: { id: ledgerId },
+      data: {
+        status: "DUPLICATE",
+      },
+    });
+  } else if (intent === "junk") {
+    await prisma.ledger.update({
+      where: { id: ledgerId },
+      data: {
+        status: "JUNK",
+      },
+    });
   }
 }
 export function HydrateFallback() {
@@ -169,17 +200,62 @@ const LedgerRow = ({ item, i, categories }) => {
             <span>Save</span>
           </button>
         </Form>
-        {item.emailId && (
-          <Link
-            to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
-            className="text-indigo-600 hover:text-indigo-900"
-            target="_blank"
-          >
-            <button className="bg-gray-400 text-primary-foreground hover:bg-primary/70 hover:text-primary-foreground min-w-8 px-4 rounded-md cursor-pointer">
-              View
-            </button>
-          </Link>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <IconDotsVertical className="text-gray-300" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              <Form method="post" className="w-full">
+                <input type="hidden" name="id" value={item.id} />
+                <button
+                  type="submit"
+                  name="intent"
+                  value="duplicate"
+                  className="cursor-pointer w-full text-left"
+                >
+                  Mark as Duplicate
+                </button>
+              </Form>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Form method="post" className="w-full">
+                <input type="hidden" name="id" value={item.id} />
+                <button
+                  type="submit"
+                  name="intent"
+                  value="ignore"
+                  className="cursor-pointer w-full text-left"
+                >
+                  Ignore this transaction
+                </button>
+              </Form>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Form method="post" className="w-full">
+                <input type="hidden" name="id" value={item.id} />
+                <button
+                  type="submit"
+                  name="intent"
+                  value="junk"
+                  className="cursor-pointer w-full text-left"
+                >
+                  Mark as Junk
+                </button>
+              </Form>
+            </DropdownMenuItem>
+            {item.emailId && (
+              <DropdownMenuItem>
+                <Link
+                  to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
+                  target="_blank"
+                >
+                  View Email
+                </Link>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
     </TableRow>
   );

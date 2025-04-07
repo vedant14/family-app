@@ -1,7 +1,6 @@
-import { IconCirclePlusFilled } from "~/components/ui/icons";
+import { IconCirclePlusFilled, IconDotsVertical } from "~/components/ui/icons";
 import { useEffect, useState, useRef } from "react";
 import { Form } from "react-router";
-import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Dialog } from "~/components/ui/dialog";
 import {
@@ -19,6 +18,14 @@ import { parseCookies } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
 import { SourceForm } from "~/dashboard/create-source-form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 const COLUMN_WIDTHS = {
   sourceName: "w-[200px]",
@@ -30,148 +37,103 @@ const COLUMN_WIDTHS = {
 };
 
 export async function action({ request, params }) {
-  let formData = await request.formData();
-  const intent = formData.get("intent");
+  const formData = Object.fromEntries(await request.formData());
+  const { intent, id, ...data } = formData;
 
-  if (intent === "add") {
-    let data = Object.fromEntries(formData);
-    const {
-      sourceName,
-      sourceType,
-      label,
-      subject,
-      fromEmail,
-      amountRegex,
-      amountRegexBackup,
-      payeeRegex,
-      payeeRegexBackup,
-      categoryId,
-      defaultType,
-      rulePriority = 1,
-    } = data;
-    const header = Object.fromEntries(request.headers);
-    const cookie = parseCookies(header.cookie);
-    const verifyUser = await verifyIdToken(cookie.user);
-    const user = await findTeamUserByEmail(
-      verifyUser.email,
-      Number(params.teamId)
-    );
-    if (!sourceName || !sourceType) {
-      return { error: "What is required, is required!" };
-    }
-    if (!user) {
-      return { error: "User not found" };
-    }
+  const header = Object.fromEntries(request.headers);
+  const cookie = parseCookies(header.cookie);
+  const verifyUser = await verifyIdToken(cookie.user);
+  const user = await findTeamUserByEmail(
+    verifyUser.email,
+    Number(params.teamId)
+  );
 
-    let queryParts = [];
+  if (!user) return { error: "User not found" };
 
-    if (subject) {
-      queryParts.push(`subject:${subject}`);
-    }
-
-    if (label) {
-      queryParts.push(`label:${label}`);
-    }
-    if (fromEmail) {
-      queryParts.push(`from:${fromEmail}`);
-    }
-
-    const query = queryParts.join(" ");
-    const source = await prisma.source.create({
-      data: {
+  switch (intent) {
+    case "add":
+    case "add-form": {
+      const {
         sourceName,
-        query,
         sourceType,
-        userId: user.id,
+        label,
+        subject,
+        fromEmail,
         amountRegex,
         amountRegexBackup,
         payeeRegex,
         payeeRegexBackup,
+        categoryId,
         defaultType,
-        rulePriority,
-        categoryId: Number(categoryId),
-      },
-    });
-    return true;
-  } else if (intent === "activate") {
-    const sourceId = Number(formData.get("id"));
-    await prisma.source.update({
-      where: { id: sourceId },
-      data: { status: "ACTIVE" },
-    });
-    return true;
-  } else if (intent === "edit") {
-    const sourceId = Number(formData.get("id"));
-    let data = Object.fromEntries(formData);
-    const {
-      sourceName,
-      sourceType,
-      query,
-      amountRegex,
-      amountRegexBackup,
-      payeeRegex,
-      payeeRegexBackup,
-      categoryId,
-      defaultType,
-    } = data;
-    const source = await prisma.source.update({
-      where: { id: sourceId },
-      data: {
+        rulePriority = 1,
+      } = data;
+
+      if (!sourceName || !sourceType)
+        return { error: "What is required, is required!" };
+
+      const queryParts = [];
+      if (subject) queryParts.push(`subject:${subject}`);
+      if (label) queryParts.push(`label:${label}`);
+      if (fromEmail) queryParts.push(`from:${fromEmail}`);
+      const query = queryParts.join(" ");
+
+      await prisma.source.create({
+        data: {
+          sourceName,
+          query,
+          sourceType,
+          userId: user.id,
+          amountRegex,
+          amountRegexBackup,
+          payeeRegex,
+          payeeRegexBackup,
+          defaultType,
+          rulePriority,
+          categoryId: Number(categoryId),
+        },
+      });
+      return true;
+    }
+    case "activate":
+    case "deactivate": {
+      const status = intent === "activate" ? "ACTIVE" : "INACTIVE";
+      await prisma.source.update({
+        where: { id: Number(id) },
+        data: { status },
+      });
+      return true;
+    }
+    case "edit": {
+      const {
         sourceName,
-        query,
         sourceType,
+        query,
         amountRegex,
         amountRegexBackup,
         payeeRegex,
         payeeRegexBackup,
+        categoryId,
         defaultType,
-        categoryId: Number(categoryId),
-      },
-    });
-    return true;
-  } else if (intent === "add-form") {
-    let data = Object.fromEntries(formData);
-    const {
-      sourceName,
-      sourceType,
-      query,
-      amountRegex,
-      amountRegexBackup,
-      payeeRegex,
-      payeeRegexBackup,
-      categoryId,
-      defaultType,
-      rulePriority = 1,
-    } = data;
-    const header = Object.fromEntries(request.headers);
-    const cookie = parseCookies(header.cookie);
-    const verifyUser = await verifyIdToken(cookie.user);
-    const user = await findTeamUserByEmail(
-      verifyUser.email,
-      Number(params.teamId)
-    );
-    if (!sourceName || !sourceType) {
-      return { error: "What is required, is required!" };
+      } = data;
+      await prisma.source.update({
+        where: { id: Number(id) },
+        data: {
+          sourceName,
+          query,
+          sourceType,
+          amountRegex,
+          amountRegexBackup,
+          payeeRegex,
+          payeeRegexBackup,
+          defaultType,
+          categoryId: Number(categoryId),
+        },
+      });
+      return true;
     }
-    if (!user) {
-      return { error: "User not found" };
-    }
-    const source = await prisma.source.create({
-      data: {
-        sourceName,
-        query,
-        sourceType,
-        userId: user.id,
-        amountRegex,
-        amountRegexBackup,
-        payeeRegex,
-        payeeRegexBackup,
-        defaultType,
-        rulePriority,
-        categoryId: Number(categoryId),
-      },
-    });
-    return true;
+
+    default:
+      return { error: "Invalid intent" };
   }
 }
 
@@ -283,11 +245,11 @@ function SourceRow({ source, categories, i }) {
         className={COLUMN_WIDTHS.regex}
         defaultValue={source.payeeRegexBackup}
       />
-      <TableCell className="p-0">
+      <TableCell>
         <select
           name="defaultType"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue={source.defaultType || ""}
         >
           <option value="" disabled>
@@ -301,7 +263,7 @@ function SourceRow({ source, categories, i }) {
         <select
           name="categoryId"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue={source.defaultCategory?.id || ""}
         >
           <option value="" disabled>
@@ -315,29 +277,52 @@ function SourceRow({ source, categories, i }) {
         </select>
       </TableCell>
       <TableCells.Text>{source.status}</TableCells.Text>
-      <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-x-2">
-        <Form method="post" id={formId}>
+      <TableCell className="px-6 whitespace-nowrap text-right text-sm font-medium flex gap-x-2">
+        <Form method="post" id={formId} className="py-2">
           <input type="hidden" name="id" value={source.id} />
-          <Button
+          <button
             name="intent"
             value="edit"
             type="submit"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8"
+            size="sm"
+            className="bg-gray-400 text-primary-foreground hover:bg-primary/70 hover:text-primary-foreground min-w-8 px-4 rounded-md cursor-pointer"
           >
             <span>Save</span>
-          </Button>
+          </button>
         </Form>
-        <Form method="post">
-          <input type="hidden" name="id" value={source.id} />
-          <Button
-            type="submit"
-            name="intent"
-            value="activate"
-            className="bg-green-700 text-primary-foreground"
-          >
-            Activate
-          </Button>
-        </Form>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <IconDotsVertical className="text-gray-300" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              <Form method="post" className="w-full">
+                <input type="hidden" name="id" value={source.id} />
+                <button
+                  type="submit"
+                  name="intent"
+                  value="activate"
+                  className="cursor-pointer w-full text-left"
+                >
+                  Activate
+                </button>
+              </Form>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Form method="post" className="w-full">
+                <input type="hidden" name="id" value={source.id} />
+                <button
+                  type="submit"
+                  name="intent"
+                  value="deactivate"
+                  className="cursor-pointer w-full text-left"
+                >
+                  De-Activate
+                </button>
+              </Form>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
@@ -350,7 +335,6 @@ function NewSourceRow({ categories, actionData }) {
   useEffect(() => {
     if (actionData === true) {
       formRef.current?.reset();
-      toast.success("Source added successfully!");
     }
   }, [actionData]);
 
@@ -405,7 +389,7 @@ function NewSourceRow({ categories, actionData }) {
         <select
           name="defaultType"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue=""
         >
           <option value="" disabled>
@@ -419,7 +403,7 @@ function NewSourceRow({ categories, actionData }) {
         <select
           name="categoryId"
           form={formId}
-          className="h-full min-h-[38px] px-4 py-2 w-full border-0 focus:outline-none"
+          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue=""
         >
           <option value="" disabled>
@@ -433,16 +417,17 @@ function NewSourceRow({ categories, actionData }) {
         </select>
       </TableCell>
       <TableCells.Text>-</TableCells.Text>
-      <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-x-2">
+      <TableCell className="px-6 py-2 whitespace-nowrap text-right text-sm font-medium flex gap-x-2">
         <Form method="post" id={formId} ref={formRef}>
-          <Button
+          <button
             name="intent"
             value="add-form"
             type="submit"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground min-w-8"
+            size="sm"
+            className="bg-gray-400 text-primary-foreground hover:bg-primary/70 hover:text-primary-foreground min-w-8 px-4 rounded-md cursor-pointer"
           >
             <span>Add</span>
-          </Button>
+          </button>
         </Form>
       </TableCell>
     </TableRow>
@@ -454,13 +439,13 @@ export default function Sources({ loaderData, actionData }) {
   const toggleOpen = (form) => form === "add" && setAddFormOpen(!addFormOpen);
   const { sources, categories } = loaderData;
 
-  useEffect(() => {
-    if (actionData === true) {
-      toast.success("Changes saved successfully!");
-    } else if (actionData?.error) {
-      toast.error(actionData.error);
-    }
-  }, [actionData]);
+  // useEffect(() => {
+  //   if (actionData === true) {
+  //     toast.success("Changes saved successfully!");
+  //   } else if (actionData?.error) {
+  //     toast.error(actionData.error);
+  //   }
+  // }, [actionData]);
 
   return (
     <div>
