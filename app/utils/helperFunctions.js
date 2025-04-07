@@ -1,3 +1,5 @@
+import { htmlToText } from "html-to-text";
+
 export const classNames = (...classes) => {
   return classes.filter(Boolean).join(" ");
 };
@@ -18,22 +20,37 @@ export function getBody(emailData) {
   let body = "";
   if (emailData.payload.body?.data) {
     body = Buffer.from(emailData.payload.body.data, "base64").toString("utf-8");
-  } else if (emailData.payload.parts) {
+    return body;
+  }
+
+  if (emailData.payload.parts) {
     const textPart = emailData.payload.parts.find(
       (part) => part.mimeType === "text/plain"
     );
+
     if (textPart?.body?.data) {
       body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
-    } else {
-      const htmlPart = emailData.payload.parts.find(
-        (part) => part.mimeType === "text/html"
-      );
-      if (htmlPart?.body?.data) {
-        body = Buffer.from(htmlPart.body.data, "base64").toString("utf-8");
-      }
+      return body;
+    }
+
+    // Fallback: Try to find HTML part and convert to plain text
+    const htmlPart = emailData.payload.parts.find(
+      (part) => part.mimeType === "text/html"
+    );
+    if (htmlPart?.body?.data) {
+      const html = Buffer.from(htmlPart.body.data, "base64").toString("utf-8");
+      body = htmlToText(html, {
+        wordwrap: false,
+        selectors: [
+          { selector: "a", options: { hideLinkHrefIfSameAsText: true } },
+        ],
+      });
+      return body;
     }
   }
-  return body;
+
+  // If nothing found
+  return "";
 }
 
 export const formatDate = (dateString) => {

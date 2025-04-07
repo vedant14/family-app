@@ -1,8 +1,6 @@
-import { IconCirclePlusFilled, IconDotsVertical } from "~/components/ui/icons";
+import { IconDotsVertical } from "~/components/ui/icons";
 import { useEffect } from "react";
 import { Form, Link } from "react-router";
-import { toast } from "sonner";
-import { Dialog } from "~/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -217,9 +215,11 @@ const LedgerRow = ({ item, i, categories }) => {
             <IconDotsVertical className="text-gray-300" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem>Transaction ID: {item.id}</DropdownMenuItem>
             <DropdownMenuItem>
               Source Type: {item.source.sourceName}
             </DropdownMenuItem>
+
             {item.emailId && (
               <>
                 <DropdownMenuItem>
@@ -314,7 +314,7 @@ const LedgerRow = ({ item, i, categories }) => {
   );
 };
 
-export default function Product({ loaderData }) {
+export default function Transactions({ loaderData }) {
   const { transactions, categories } = loaderData;
   return (
     <div className="rounded-md border overflow-hidden">
