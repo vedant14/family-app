@@ -10,13 +10,13 @@ import {
 
 export const TableCells = {
   Input: ({ formId, name, defaultValue, type = "text", className = "" }) => (
-    <TableCell className="p-0">
+    <TableCell className="p-0 w-96">
       <input
         type={type}
         name={name}
         defaultValue={defaultValue}
         form={formId}
-        className={`h-full px-4 min-h-7 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset w-full ${className}`}
+        className={`h-full px-4 min-h-7 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
       />
     </TableCell>
   ),
@@ -29,7 +29,7 @@ export const TableCells = {
         name={name}
         form={formId}
         defaultValue={value}
-        className={`h-full px-4 w-full border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
+        className={`h-full px-4 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
       >
         {children}
       </select>

@@ -100,3 +100,11 @@ export const extractInfoFromEmail = (
   }
   return data;
 };
+
+export const getInitials = (name) => {
+  if (name) {
+    return name.split("").slice(0, 2).join("").toUpperCase();
+  } else {
+    return null;
+  }
+};

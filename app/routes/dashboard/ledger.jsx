@@ -13,7 +13,12 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { SourceForm } from "~/dashboard/create-source-form";
-import { formatDate, parseCookies } from "~/utils/helperFunctions";
+import {
+  classNames,
+  formatDate,
+  getInitials,
+  parseCookies,
+} from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
 import { useDialogStore } from "~/utils/store";
 import { TableCells } from "~/components/ui/tableCells";
@@ -48,6 +53,7 @@ export async function loader({ params }) {
           user: {
             select: {
               email: true,
+              name: true,
             },
           },
         },
@@ -88,45 +94,58 @@ export async function loader({ params }) {
 }
 
 export async function action({ request, params }) {
-  let formData = await request.formData();
+  const formData = await request.formData();
   const intent = formData.get("intent");
   const ledgerId = Number(formData.get("id"));
-  if (intent === "edit") {
-    let data = Object.fromEntries(formData);
-    const { transactionTypeExtract, amountExtract, payeeExtract, categoryId } =
-      data;
-    const source = await prisma.ledger.update({
-      where: { id: ledgerId },
-      data: {
-        status: "MANUAL",
+
+  const updateData = {
+    edit: async () => {
+      const {
         transactionTypeExtract,
-        categoryId: Number(categoryId),
-        amountExtract: Number(amountExtract),
+        amountExtract,
         payeeExtract,
-      },
-    });
-    return true;
-  } else if (intent === "ignore") {
-    await prisma.ledger.update({
-      where: { id: ledgerId },
-      data: {
-        status: "IGNORE",
-      },
-    });
-  } else if (intent === "duplicate") {
-    await prisma.ledger.update({
-      where: { id: ledgerId },
-      data: {
-        status: "DUPLICATE",
-      },
-    });
-  } else if (intent === "junk") {
-    await prisma.ledger.update({
-      where: { id: ledgerId },
-      data: {
-        status: "JUNK",
-      },
-    });
+        categoryId,
+      } = Object.fromEntries(formData);
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: {
+          status: "MANUAL",
+          transactionTypeExtract,
+          categoryId: Number(categoryId),
+          amountExtract: Number(amountExtract),
+          payeeExtract,
+        },
+      });
+    },
+    ignore: async () =>
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: { status: "IGNORE" },
+      }),
+    income: async () =>
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: { transactionTypeExtract: "INCOME" },
+      }),
+    expense: async () =>
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: { transactionTypeExtract: "EXPENSE" },
+      }),
+    duplicate: async () =>
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: { status: "DUPLICATE" },
+      }),
+    junk: async () =>
+      await prisma.ledger.update({
+        where: { id: ledgerId },
+        data: { status: "JUNK" },
+      }),
+  };
+
+  if (updateData[intent]) {
+    await updateData[intent]();
   }
 }
 export function HydrateFallback() {
@@ -141,26 +160,12 @@ const LedgerRow = ({ item, i, categories }) => {
       id={item.id}
       className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
     >
-      <TableCell>{formatDate(item.date)}</TableCell>
-      <TableCell className="p-0 w-[500px]">
-        <select
-          name="transactionTypeExtract"
-          form={formId}
-          className="h-full px-4 py-0 w-full border-0 focus:outline-none"
-          defaultValue={item.transactionTypeExtract}
-        >
-          <option value="" disabled>
-            Select type
-          </option>
-          <option value="EXPENSE">EXPENSE</option>
-          <option value="INCOME">INCOME</option>
-        </select>
-      </TableCell>
-      <TableCell className="p-0">
+      <TableCell className="w-32">{formatDate(item.date)}</TableCell>
+      <TableCell className="p-0 w-48">
         <select
           name="categoryId"
           form={formId}
-          className="h-full px-4 py-0 w-full border-0 focus:outline-none"
+          className="h-full px-4 py-0 border-0 focus:outline-none"
           defaultValue={item.category?.id || ""}
         >
           <option value="" disabled>
@@ -176,6 +181,11 @@ const LedgerRow = ({ item, i, categories }) => {
       <TableCells.Input
         type="number"
         formId={formId}
+        className={classNames(
+          item.transactionTypeExtract === "EXPENSE"
+            ? "text-red-500 before:content-['s']"
+            : "text-green-700"
+        )}
         name="amountExtract"
         defaultValue={item.amountExtract}
       />
@@ -184,9 +194,11 @@ const LedgerRow = ({ item, i, categories }) => {
         name="payeeExtract"
         defaultValue={item.payeeExtract}
       />
-      <TableCell>{item.source.sourceName}</TableCell>
-      <TableCell>{item.user.user.email}</TableCell>
-      <TableCell>{item.emailSubject}</TableCell>
+      <TableCell className="w-8">
+        <div className="h-8 w-8 rounded-full bg-gray-300 flex">
+          <div className="m-auto">{getInitials(item.user.user.name)}</div>
+        </div>
+      </TableCell>
       <td className="flex space-x-2 py-2 px-12">
         <Form method="post" id={formId}>
           <input type="hidden" name="id" value={item.id} />
@@ -205,6 +217,57 @@ const LedgerRow = ({ item, i, categories }) => {
             <IconDotsVertical className="text-gray-300" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem>
+              Source Type: {item.source.sourceName}
+            </DropdownMenuItem>
+            {item.emailId && (
+              <>
+                <DropdownMenuItem>
+                  Email: {item.user.user.email}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  Email Subject : {item.emailSubject}
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link
+                    to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
+                    target="_blank"
+                  >
+                    View Email
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuSeparator />
+            {item.transactionTypeExtract === "EXPENSE" ? (
+              <DropdownMenuItem>
+                <Form method="post" className="w-full">
+                  <input type="hidden" name="id" value={item.id} />
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="income"
+                    className="cursor-pointer w-full text-left"
+                  >
+                    Mark as Income
+                  </button>
+                </Form>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem>
+                <Form method="post" className="w-full">
+                  <input type="hidden" name="id" value={item.id} />
+                  <button
+                    type="submit"
+                    name="intent"
+                    value="expense"
+                    className="cursor-pointer w-full text-left"
+                  >
+                    Mark as Expense
+                  </button>
+                </Form>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem>
               <Form method="post" className="w-full">
                 <input type="hidden" name="id" value={item.id} />
@@ -244,16 +307,6 @@ const LedgerRow = ({ item, i, categories }) => {
                 </button>
               </Form>
             </DropdownMenuItem>
-            {item.emailId && (
-              <DropdownMenuItem>
-                <Link
-                  to={`https://mail.google.com/mail/#inbox/${item.emailId}`}
-                  target="_blank"
-                >
-                  View Email
-                </Link>
-              </DropdownMenuItem>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </td>
@@ -266,17 +319,14 @@ export default function Product({ loaderData }) {
   return (
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-auto scrollbar-hide">
-        <Table className="">
+        <Table>
           <TableHeader className="bg-muted sticky top-0 z-10">
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead className="min-w-[150px]">Type</TableHead>
-              <TableHead className="min-w-[200px]">Category</TableHead>
-              <TableHead className="min-w-[150px]">Amount</TableHead>
-              <TableHead className="min-w-[200px]">Merchant</TableHead>
-              <TableHead className="text-left">Source Name</TableHead>
-              <TableHead className="text-left">User</TableHead>
-              <TableHead className="text-left">Subject</TableHead>
+              <TableHead className="w-32">Date</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Merchant</TableHead>
+              <TableHead className="text-center"></TableHead>
               <TableHead className="text-center">...</TableHead>
             </TableRow>
           </TableHeader>
