@@ -99,7 +99,6 @@ export const action = async ({ request }) => {
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
-
     // Fetch existing email IDs to avoid duplicates
     const emailIds = messages.map((m) => m.id);
     const existingEmails = await prisma.ledger.findMany({
@@ -113,7 +112,11 @@ export const action = async ({ request }) => {
 
     if (newMessages.length === 0) {
       return new Response(
-        JSON.stringify({ message: "All emails already processed." }),
+        JSON.stringify({
+          message: "All emails already processed.",
+          totalFetched: messages.length,
+          existingEmailIds,
+        }),
         { headers: { "Content-Type": "application/json" } }
       );
     }
