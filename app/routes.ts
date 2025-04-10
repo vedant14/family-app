@@ -19,4 +19,5 @@ export default [
   route("api/extract-info", "./api/extract-info.js"),
   route("api/add/:sourceId", "./api/add-transaction.js"),
   route("api/debug-ledger/:ledgerId", "./api/debug-ledger.js"),
+  route("api/delete-transaction/:ledgerId", "./api/delete-transaction.js"),
 ] satisfies RouteConfig;
