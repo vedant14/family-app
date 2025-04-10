@@ -125,3 +125,27 @@ export const getInitials = (name) => {
     return null;
   }
 };
+
+export function formatIndianCurrency(value, { roundOff = true } = {}) {
+  if (typeof value !== "number") return "0.00";
+
+  const suffixes = [
+    { limit: 1e7, divisor: 1e7, suffix: "Cr" },
+    { limit: 1e5, divisor: 1e5, suffix: "L" },
+    { limit: 1e3, divisor: 1e3, suffix: "k" },
+  ];
+
+  if (roundOff) {
+    for (const { limit, divisor, suffix } of suffixes) {
+      if (value >= limit) {
+        return `₹${(value / divisor).toFixed(1)}${suffix}`;
+      }
+    }
+  }
+
+  // Regular Indian format with commas
+  return `₹ ${value.toLocaleString("en-IN", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+  })}`;
+}
