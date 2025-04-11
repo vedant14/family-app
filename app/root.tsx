@@ -8,6 +8,8 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
+import { registerSW } from "virtual:pwa-register";
+import { useEffect } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const links: Route.LinksFunction = () => [
@@ -42,6 +44,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const updateSW = registerSW({
+      onNeedRefresh() {
+        if (confirm("New version available. Refresh now?")) {
+          updateSW(true);
+        }
+      },
+      onOfflineReady() {
+        console.log("App is ready to work offline.");
+      },
+    });
+  }, []);
+
   return (
     <GoogleOAuthProvider clientId="106905200452-7qst1sct14mo71bnh0em4dme268a83d2.apps.googleusercontent.com">
       <Outlet />
