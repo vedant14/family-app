@@ -99,6 +99,7 @@ export const action = async ({ request }) => {
         { status: 404, headers: { "Content-Type": "application/json" } }
       );
     }
+    // Fetch existing email IDs to avoid duplicates
     const emailIds = messages.map((m) => m.id);
     const existingEmails = await prisma.ledger.findMany({
       where: { emailId: { in: emailIds } },
@@ -110,13 +111,15 @@ export const action = async ({ request }) => {
     const newMessages = messages.filter((m) => !existingEmailIds.has(m.id));
 
     if (newMessages.length === 0) {
-      console.log(`All emails already processed for source: ${sourceId}`);
-      return { message: "All emails already processed.", sourceId, messages };
+      return new Response(
+        JSON.stringify({
+          message: "All emails already processed.",
+          totalFetched: messages.length,
+          existingEmailIds,
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
     }
-
-    console.log(
-      `Processing ${newMessages.length} new emails for source: ${sourceId}`
-    );
 
     const emails = await Promise.all(
       newMessages.map(async (message) => {
