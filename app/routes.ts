@@ -4,7 +4,7 @@ export default [
   index("routes/home.jsx"),
   layout("./dashboard/layout.jsx", [
     route("/:teamId", "./routes/dashboardOutlet.jsx", [
-      route("dashboard", "./routes/dashboard/dashboard.jsx"),
+      route("", "./routes/dashboard/dashboard.jsx"),
       route("ledger", "./routes/dashboard/ledger.jsx"),
       route("sources", "./routes/team/sources.jsx"),
       route("categories", "./routes/team/categories.jsx"),
