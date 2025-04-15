@@ -41,7 +41,7 @@ export default function Login({ className, ...props }) {
         document.cookie = `user=${data.user.idToken}; path=/; max-age=${
           60 * 60 * 24 * 7
         }`;
-        window.location.href = `/${data.teams[0].teamId}`;
+        window.location.href = `/${data.teams[0].teamId}/dashboard`;
       } else {
         console.error("Error creating user:", data.error);
       }

@@ -18,6 +18,7 @@ import {
   parseCookies,
 } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
+import { startOfMonth, endOfMonth } from "~/utils/dateHelpers";
 import { useDialogStore } from "~/utils/store";
 import { TableCells } from "~/components/ui/tableCells";
 import {
@@ -30,6 +31,9 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 export async function loader({ params }) {
+  const now = new Date();
+  const thisMonthRange = { gte: startOfMonth(now), lte: endOfMonth(now) };
+
   const transactions = await prisma.ledger.findMany({
     select: {
       id: true,
@@ -71,6 +75,7 @@ export async function loader({ params }) {
       status: {
         in: ["CREATED", "EXTRACTED", "MANUAL"],
       },
+      date: thisMonthRange,
     },
     orderBy: {
       date: "desc",
@@ -149,6 +154,7 @@ export function HydrateFallback() {
 }
 
 const LedgerRow = ({ item, i, categories }) => {
+  console.log(item);
   const formId = `edit-form-${item.id}`;
   return (
     <TableRow
@@ -314,6 +320,7 @@ const LedgerRow = ({ item, i, categories }) => {
 
 export default function Transactions({ loaderData }) {
   const { transactions, categories } = loaderData;
+
   return (
     <div className="rounded-md border overflow-hidden">
       <div className="overflow-auto scrollbar-hide">

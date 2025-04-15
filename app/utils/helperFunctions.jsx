@@ -48,20 +48,30 @@ export function getBody(emailData) {
       return body;
     }
   }
-
-  // If nothing found
   return "";
 }
 
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
+
   const day = date.getDate();
   const suffix = getDaySuffix(day);
   const month = date.toLocaleString("default", { month: "short" });
   const year = date.toLocaleString("default", { year: "numeric" });
 
-  return `${day}${suffix} ${month}, ${year}`;
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const time = `${hours}:${minutes}:${seconds}`;
+
+  return (
+    <div className="flex-column">
+      <div className="text-sm text-gray-600">{`${day}${suffix} ${month}, ${year}`}</div>
+      <div className="text-xs text-gray-400">{time}</div>
+    </div>
+  );
 };
+
 const getDaySuffix = (day) => {
   if (day > 3 && day < 21) return "th"; // Covers 4-20
   switch (day % 10) {
