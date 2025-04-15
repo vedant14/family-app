@@ -60,6 +60,7 @@ export async function loader({ params }) {
       category: {
         select: {
           id: true,
+          colorCode: true,
           categoryName: true,
         },
       },
@@ -197,8 +198,9 @@ const LedgerRow = ({ item, i, categories }) => {
         formId={formId}
         className={classNames(
           item.transactionTypeExtract === "EXPENSE"
-            ? "text-red-500 before:content-['s']"
-            : "text-green-700"
+            ? "text-red-500"
+            : "text-green-700",
+          "w-32"
         )}
         name="amountExtract"
         defaultValue={item.amountExtract}
@@ -207,6 +209,7 @@ const LedgerRow = ({ item, i, categories }) => {
         formId={formId}
         name="payeeExtract"
         defaultValue={item.payeeExtract}
+        className="w-[500px]"
       />
       <TableCell className="w-8">
         <div className="h-8 w-8 rounded-full bg-gray-300 flex">
@@ -333,7 +336,8 @@ const LedgerRow = ({ item, i, categories }) => {
 export default function Transactions({ loaderData }) {
   const { transactions, categories } = loaderData;
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState(transactions);
+  const [filteredTransactions, setFilteredTransactions] =
+    useState(transactions);
   const [query, setQuery] = useState("");
   const location = useLocation();
 
@@ -342,12 +346,13 @@ export default function Transactions({ loaderData }) {
     const categoryParam = params.get("category");
     if (categoryParam) {
       const categoryIds = categoryParam.split(",").map(Number);
-      const initialSelectedCategories = categories.filter((cat) => categoryIds.includes(cat.id));
+      const initialSelectedCategories = categories.filter((cat) =>
+        categoryIds.includes(cat.id)
+      );
       setSelectedCategories(initialSelectedCategories);
     }
   }, [location.search, categories]);
   const filteredAvailableCategories = useMemo(() => {
-
     const selectedCategoryIds = new Set(
       selectedCategories.map((cat) => cat.id)
     );
@@ -380,13 +385,17 @@ export default function Transactions({ loaderData }) {
   };
 
   useEffect(() => {
-      if (selectedCategories.length === 0) {
-        setFilteredTransactions(transactions);
-      } else {
-        const selectedIds = new Set(selectedCategories.map((cat) => cat.id));
-        setFilteredTransactions(transactions.filter((transaction) => selectedIds.has(transaction.categoryId)));
-      }
-    }, [transactions, selectedCategories]);
+    if (selectedCategories.length === 0) {
+      setFilteredTransactions(transactions);
+    } else {
+      const selectedIds = new Set(selectedCategories.map((cat) => cat.id));
+      setFilteredTransactions(
+        transactions.filter((transaction) =>
+          selectedIds.has(transaction.categoryId)
+        )
+      );
+    }
+  }, [transactions, selectedCategories]);
 
   return (
     <div>
@@ -395,7 +404,8 @@ export default function Transactions({ loaderData }) {
           {selectedCategories.map((category) => (
             <span
               key={category.id}
-              className="inline-flex items-center gap-x-1.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700"
+              className="inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-xs font-medium text-gray-700"
+              style={{backgroundColor: category.colorCode || "#808080"}}
             >
               {category.categoryName}
               <button
@@ -405,7 +415,7 @@ export default function Transactions({ loaderData }) {
                 aria-label={`Remove ${category.categoryName}`}
               >
                 <IconX
-                  className="h-3.5 w-3.5 stroke-gray-400"
+                  className="h-3.5 w-3.5 stroke-gray-700"
                   aria-hidden="true"
                 />
               </button>
@@ -421,14 +431,13 @@ export default function Transactions({ loaderData }) {
         >
           <ComboboxInput
             className="border w-48 px-2 py-1 rounded-md"
-            placeholder="Add category filter..."
-            aria-label="Add category filter"
+            placeholder="Search for categories"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
           <ComboboxOptions
             anchor="bottom start"
-            className="empty:invisible bg-white w-48 divide-y-1 border mt-1 rounded-md max-h-60 overflow-y-auto"
+            className="empty:invisible bg-white w-48 divide-y-1 border mt-1 rounded-md max-h-60 overflow-y-auto shadow-lg"
           >
             {filteredAvailableCategories.length === 0 && query !== "" ? (
               <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
@@ -449,7 +458,7 @@ export default function Transactions({ loaderData }) {
         </Combobox>
       </div>
 
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md border overflow-hidden w-fit">
         <div className="overflow-auto scrollbar-hide">
           <Table>
             <TableHeader className="bg-muted">

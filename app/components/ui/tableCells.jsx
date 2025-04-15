@@ -10,13 +10,13 @@ import {
 
 export const TableCells = {
   Input: ({ formId, name, defaultValue, type = "text", className = "" }) => (
-    <TableCell className="p-0 w-96">
+    <TableCell className={`p-0 ${className}`}>
       <input
         type={type}
         name={name}
         defaultValue={defaultValue}
         form={formId}
-        className={`h-full px-4 min-h-7 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
+        className="px-4 w-full min-h-7 border-0 focus:outline-none rounded-md focus:ring-none"
       />
     </TableCell>
   ),

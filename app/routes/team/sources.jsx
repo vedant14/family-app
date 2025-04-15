@@ -442,14 +442,6 @@ export default function Sources({ loaderData, actionData }) {
   const toggleOpen = (form) => form === "add" && setAddFormOpen(!addFormOpen);
   const { sources, categories } = loaderData;
 
-  // useEffect(() => {
-  //   if (actionData === true) {
-  //     toast.success("Changes saved successfully!");
-  //   } else if (actionData?.error) {
-  //     toast.error(actionData.error);
-  //   }
-  // }, [actionData]);
-
   return (
     <div>
       <div className="flex justify-end mb-4">
@@ -469,48 +461,54 @@ export default function Sources({ loaderData, actionData }) {
         </Dialog>
       </div>
       <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader className="bg-muted sticky top-0 z-10">
-            <TableRow>
-              <TableHead className="w-[60px]">ID</TableHead>
-              <TableHead className={COLUMN_WIDTHS.sourceName}>
-                Source Title *
-              </TableHead>
-              <TableHead className={COLUMN_WIDTHS.sourceType}>Type *</TableHead>
-              <TableHead className="w-[150px]">User</TableHead>
-              <TableHead className={COLUMN_WIDTHS.query}>Query</TableHead>
-              <TableHead className={COLUMN_WIDTHS.regex}>
-                Amount Regex
-              </TableHead>
-              <TableHead className={COLUMN_WIDTHS.regex}>
-                Amount Regex Backup
-              </TableHead>
-              <TableHead className={COLUMN_WIDTHS.regex}>Payee Regex</TableHead>
-              <TableHead className={COLUMN_WIDTHS.regex}>
-                Payee Regex Backup
-              </TableHead>
-              <TableHead className={COLUMN_WIDTHS.defaultType}>
-                Default Type
-              </TableHead>
-              <TableHead className={COLUMN_WIDTHS.category}>
-                Default Category
-              </TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="w-[150px] text-center">...</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sources.map((source, i) => (
-              <SourceRow
-                key={source.id}
-                source={source}
-                categories={categories}
-                i={i}
-              />
-            ))}
-            <NewSourceRow categories={categories} actionData={actionData} />
-          </TableBody>
-        </Table>
+        <div className="overflow-auto scrollbar-hide">
+          <Table>
+            <TableHeader className="bg-muted">
+              <TableRow>
+                <TableHead className="w-[60px]">ID</TableHead>
+                <TableHead className={COLUMN_WIDTHS.sourceName}>
+                  Source Title *
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.sourceType}>
+                  Type *
+                </TableHead>
+                <TableHead className="w-[150px]">User</TableHead>
+                <TableHead className={COLUMN_WIDTHS.query}>Query</TableHead>
+                <TableHead className={COLUMN_WIDTHS.regex}>
+                  Amount Regex
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.regex}>
+                  Amount Regex Backup
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.regex}>
+                  Payee Regex
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.regex}>
+                  Payee Regex Backup
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.defaultType}>
+                  Default Type
+                </TableHead>
+                <TableHead className={COLUMN_WIDTHS.category}>
+                  Default Category
+                </TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-[150px] text-center">...</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sources.map((source, i) => (
+                <SourceRow
+                  key={source.id}
+                  source={source}
+                  categories={categories}
+                  i={i}
+                />
+              ))}
+              <NewSourceRow categories={categories} actionData={actionData} />
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

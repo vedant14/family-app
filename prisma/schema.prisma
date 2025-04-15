@@ -109,6 +109,9 @@ model Category {
   id           Int       @id @default(autoincrement())
   categoryName String
   teamId       Int
+  isDontTrack  Boolean   @default(false)
+  isInvestment Boolean   @default(false)
+  colorCode    String?
   team         Team      @relation(fields: [teamId], references: [id])
   ledgers      Ledger[]
   sources      Source[]
