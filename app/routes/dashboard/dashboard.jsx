@@ -28,7 +28,7 @@ export async function loader({ params }) {
   };
 
   const baseWhere = {
-    user: { team: { id: teamId } },
+    user: { teamId: teamId },
     status: { in: ["CREATED", "EXTRACTED", "MANUAL"] },
   };
 

@@ -86,7 +86,6 @@ export async function loader({ params }) {
       createdAt: "asc",
     },
   });
-  console.log(params);
   return { transactions, categories };
 }
 
