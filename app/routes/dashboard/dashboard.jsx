@@ -1,32 +1,36 @@
 import { SectionCards } from "~/components/section-cards";
 import prisma from "~/utils/prismaClient";
 import {
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  subWeeks,
-  subMonths,
+  startOfWeekUTC,
+  endOfWeekUTC,
+  startOfMonthUTC,
+  endOfMonthUTC,
+  subWeeksUTC,
+  subMonthsUTC,
 } from "~/utils/dateHelpers";
-
 export async function loader({ params }) {
   if (!params?.teamId) return null;
   const teamId = Number(params.teamId);
 
-  const now = new Date();
-
-  // Time Ranges
-  const thisWeekRange = { gte: startOfWeek(now), lte: endOfWeek(now) };
+  const nowUTC = new Date(); // This will be in the server's local timezone initially
+  const nowForUTC = new Date(nowUTC.toISOString()); // Convert to a UTC Date object
+  // Time Ranges in UTC
+  const thisWeekRange = {
+    gte: startOfWeekUTC(nowForUTC),
+    lte: endOfWeekUTC(nowForUTC),
+  };
   const lastWeekRange = {
-    gte: startOfWeek(subWeeks(now, 1)),
-    lte: endOfWeek(subWeeks(now, 1)),
+    gte: startOfWeekUTC(subWeeksUTC(nowForUTC, 1)),
+    lte: endOfWeekUTC(subWeeksUTC(nowForUTC, 1)),
   };
-  const thisMonthRange = { gte: startOfMonth(now), lte: endOfMonth(now) };
+  const thisMonthRange = {
+    gte: startOfMonthUTC(nowForUTC),
+    lte: endOfMonthUTC(nowForUTC),
+  };
   const lastMonthRange = {
-    gte: startOfMonth(subMonths(now, 1)),
-    lte: endOfMonth(subMonths(now, 1)),
+    gte: startOfMonthUTC(subMonthsUTC(nowForUTC, 1)),
+    lte: endOfMonthUTC(subMonthsUTC(nowForUTC, 1)),
   };
-
   const baseWhere = {
     user: { teamId: teamId },
     status: { in: ["CREATED", "EXTRACTED", "MANUAL"] },
@@ -39,22 +43,22 @@ export async function loader({ params }) {
     transactionsLastMonth,
   ] = await Promise.all([
     prisma.ledger.aggregate({
-      where: { ...baseWhere, createdAt: thisWeekRange },
+      where: { ...baseWhere, date: thisWeekRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, createdAt: lastWeekRange },
+      where: { ...baseWhere, date: lastWeekRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, createdAt: thisMonthRange },
+      where: { ...baseWhere, date: thisMonthRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, createdAt: lastMonthRange },
+      where: { ...baseWhere, date: lastMonthRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
@@ -63,13 +67,13 @@ export async function loader({ params }) {
   const [categoryGroupsThisWeek, categoryGroupsThisMonth] = await Promise.all([
     prisma.ledger.groupBy({
       by: ["categoryId"],
-      where: { ...baseWhere, createdAt: thisWeekRange },
+      where: { ...baseWhere, date: thisWeekRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.groupBy({
       by: ["categoryId"],
-      where: { ...baseWhere, createdAt: thisMonthRange },
+      where: { ...baseWhere, date: thisMonthRange },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
@@ -92,7 +96,6 @@ export async function loader({ params }) {
       lastMonth: transactionsLastMonth,
     },
     timings: {
-      now,
       thisWeekRange,
       thisMonthRange,
       lastWeekRange,

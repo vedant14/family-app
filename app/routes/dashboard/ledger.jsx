@@ -18,7 +18,7 @@ import {
   parseCookies,
 } from "~/utils/helperFunctions";
 import prisma from "~/utils/prismaClient";
-import { startOfMonth, endOfMonth } from "~/utils/dateHelpers";
+import { endOfMonthUTC, startOfMonthUTC } from "~/utils/dateHelpers";
 import { useDialogStore } from "~/utils/store";
 import { TableCells } from "~/components/ui/tableCells";
 import {
@@ -31,8 +31,13 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 export async function loader({ params }) {
-  const now = new Date();
-  const thisMonthRange = { gte: startOfMonth(now), lte: endOfMonth(now) };
+  const nowUTC = new Date(); // This will be in the server's local timezone initially
+  const nowForUTC = new Date(nowUTC.toISOString()); // Convert to a UTC Date object
+
+  const thisMonthRange = {
+    gte: startOfMonthUTC(nowForUTC),
+    lte: endOfMonthUTC(nowForUTC),
+  };
 
   const transactions = await prisma.ledger.findMany({
     select: {
@@ -154,7 +159,6 @@ export function HydrateFallback() {
 }
 
 const LedgerRow = ({ item, i, categories }) => {
-  console.log(item);
   const formId = `edit-form-${item.id}`;
   return (
     <TableRow
