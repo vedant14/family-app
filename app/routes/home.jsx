@@ -6,9 +6,9 @@ export default function HomePage() {
   const selectedTeam = useAuthStore((state) => state.selectedTeam);
   useEffect(() => {
     if (selectedTeam) {
-      window.location.href = `/${selectedTeam.teamId}`;
+      window.location.href = `/${selectedTeam.teamId}/dashboard`;
     }
   }, [selectedTeam]);
 
-  return <div>VEDANT</div>;
+  return <div>Wait a second</div>;
 }

@@ -30,9 +30,6 @@ import {
 } from "~/components/ui/dropdown-menu";
 
 export async function loader({ params }) {
-  if (!params || !params.teamId) {
-    return null;
-  }
   const transactions = await prisma.ledger.findMany({
     select: {
       id: true,
@@ -67,10 +64,8 @@ export async function loader({ params }) {
     },
     where: {
       user: {
-        team: {
-          id: {
-            equals: Number(params.teamId),
-          },
+        teamId: {
+          equals: Number(params.teamId),
         },
       },
       status: {
@@ -91,6 +86,7 @@ export async function loader({ params }) {
       createdAt: "asc",
     },
   });
+  console.log(params);
   return { transactions, categories };
 }
 

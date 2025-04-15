@@ -18,7 +18,7 @@ import { parseCookies } from "~/utils/helperFunctions";
 
 const data = {
   navMain: [
-    { title: "Dashboard", url: "", icon: IconCardboards },
+    { title: "Dashboard", url: "dashboard", icon: IconCardboards },
     { title: "Ledger", url: "ledger", icon: IconReceipt },
     { title: "AI", url: "ai", icon: IconSparkles },
   ],
