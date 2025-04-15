@@ -1,6 +1,13 @@
-import { IconDotsVertical } from "~/components/ui/icons";
-import { useEffect } from "react";
-import { Form, Link } from "react-router";
+import { useState, useEffect, useMemo } from "react";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
+
+import { IconDotsVertical, IconX } from "~/components/ui/icons";
+import { Form, Link, useLocation } from "react-router";
 import {
   Table,
   TableBody,
@@ -48,6 +55,7 @@ export async function loader({ params }) {
       emailSubject: true,
       body: true,
       amountExtract: true,
+      categoryId: true,
       payeeExtract: true,
       category: {
         select: {
@@ -324,27 +332,153 @@ const LedgerRow = ({ item, i, categories }) => {
 
 export default function Transactions({ loaderData }) {
   const { transactions, categories } = loaderData;
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState(transactions);
+  const [query, setQuery] = useState("");
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get("category");
+    if (categoryParam) {
+      const categoryIds = categoryParam.split(",").map(Number);
+      const initialSelectedCategories = categories.filter((cat) => categoryIds.includes(cat.id));
+      setSelectedCategories(initialSelectedCategories);
+    }
+  }, [location.search, categories]);
+  const filteredAvailableCategories = useMemo(() => {
+
+    const selectedCategoryIds = new Set(
+      selectedCategories.map((cat) => cat.id)
+    );
+    const available = categories.filter(
+      (category) => !selectedCategoryIds.has(category.id)
+    );
+
+    if (query === "") {
+      return available;
+    } else {
+      return available.filter((category) =>
+        category.categoryName.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+  }, [categories, query, selectedCategories]);
+
+  const handleSelectCategory = (category) => {
+    if (category && !selectedCategories.some((sc) => sc.id === category.id)) {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+    setQuery("");
+  };
+
+  const handleRemoveCategory = (categoryToRemove) => {
+    setSelectedCategories(
+      selectedCategories.filter(
+        (category) => category.id !== categoryToRemove.id
+      )
+    );
+  };
+
+  useEffect(() => {
+      if (selectedCategories.length === 0) {
+        setFilteredTransactions(transactions);
+      } else {
+        const selectedIds = new Set(selectedCategories.map((cat) => cat.id));
+        setFilteredTransactions(transactions.filter((transaction) => selectedIds.has(transaction.categoryId)));
+      }
+    }, [transactions, selectedCategories]);
 
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-auto scrollbar-hide">
-        <Table>
-          <TableHeader className="bg-muted sticky top-0 z-10">
-            <TableRow>
-              <TableHead className="w-32">Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Merchant</TableHead>
-              <TableHead className="text-center"></TableHead>
-              <TableHead className="text-center">...</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((item, i) => (
-              <LedgerRow item={item} i={i} key={i} categories={categories} />
-            ))}
-          </TableBody>
-        </Table>
+    <div>
+      {selectedCategories.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2 mb-2">
+          {selectedCategories.map((category) => (
+            <span
+              key={category.id}
+              className="inline-flex items-center gap-x-1.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700"
+            >
+              {category.categoryName}
+              <button
+                type="button"
+                onClick={() => handleRemoveCategory(category)}
+                className="group relative -mr-1 h-3.5 w-3.5 rounded-sm"
+                aria-label={`Remove ${category.categoryName}`}
+              >
+                <IconX
+                  className="h-3.5 w-3.5 stroke-gray-400"
+                  aria-hidden="true"
+                />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-1 mb-4">
+        <Combobox
+          value={null}
+          onChange={handleSelectCategory}
+          onClose={() => setQuery("")}
+        >
+          <ComboboxInput
+            className="border w-48 px-2 py-1 rounded-md"
+            placeholder="Add category filter..."
+            aria-label="Add category filter"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <ComboboxOptions
+            anchor="bottom start"
+            className="empty:invisible bg-white w-48 divide-y-1 border mt-1 rounded-md max-h-60 overflow-y-auto"
+          >
+            {filteredAvailableCategories.length === 0 && query !== "" ? (
+              <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
+                Nothing found.
+              </div>
+            ) : (
+              filteredAvailableCategories.map((category) => (
+                <ComboboxOption
+                  key={category.id}
+                  value={category}
+                  className="data-[focus]:bg-blue-100 px-2 py-1 cursor-pointer"
+                >
+                  {category.categoryName}
+                </ComboboxOption>
+              ))
+            )}
+          </ComboboxOptions>
+        </Combobox>
+      </div>
+
+      <div className="rounded-md border overflow-hidden">
+        <div className="overflow-auto scrollbar-hide">
+          <Table>
+            <TableHeader className="bg-muted">
+              <TableRow>
+                <TableHead className="w-32">Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Merchant</TableHead>
+                <TableHead className="text-center"></TableHead>
+                <TableHead className="text-center">...</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTransactions.map((item, i) => (
+                <LedgerRow
+                  item={item}
+                  i={i}
+                  key={item.id}
+                  categories={categories}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        {transactions.length === 0 && transactions.length > 0 && (
+          <div className="text-center py-4 text-gray-500">
+            No transactions match the selected categories.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { IconTrendingDown, IconTrendingUp } from "./ui/icons";
 
 import { Badge } from "~/components/ui/badge";
@@ -11,8 +12,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { formatIndianCurrency } from "~/utils/helperFunctions";
+import { useAuthStore } from "~/utils/store";
 
 export function SectionCards({ data }) {
+  const selectedTeam = useAuthStore((state) => state.selectedTeam);
+  console.log(selectedTeam);
   const ShowArrow = ({ newValue, oldValue, showValue = false }) => {
     const number = showValue
       ? Math.round(((newValue - oldValue) / newValue) * 100)
@@ -125,7 +129,12 @@ export function SectionCards({ data }) {
                   return (
                     <tr key={category.id} className="hover:bg-muted/30 rounded">
                       <td className="font-medium px-2 py-1">
-                        {category.categoryName}
+                        <Link
+                          to={`/${selectedTeam.teamId}/ledger?category=${category.id}`}
+                          className="cursor-pointer underline"
+                        >
+                          {category.categoryName}
+                        </Link>
                       </td>
                       <td className="text-right px-2 py-1 text-muted-foreground">
                         {formatIndianCurrency(
