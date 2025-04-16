@@ -54,6 +54,8 @@ export async function loader({ params }) {
     transactionsLastWeek,
     transactionsThisMonth,
     transactionsLastMonth,
+    investmentsThisMonth,
+    investmentsLastMonth,
   ] = await Promise.all([
     prisma.ledger.aggregate({
       where: { ...baseWhere, date: thisWeekRange },
@@ -72,6 +74,24 @@ export async function loader({ params }) {
     }),
     prisma.ledger.aggregate({
       where: { ...baseWhere, date: lastMonthRange },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: thisMonthRange,
+        category: { isInvestment: true },
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: lastMonthRange,
+        category: { isInvestment: true },
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
@@ -108,6 +128,8 @@ export async function loader({ params }) {
       lastWeek: transactionsLastWeek,
       thisMonth: transactionsThisMonth,
       lastMonth: transactionsLastMonth,
+      investmentsThisMonth,
+      investmentsLastMonth,
     },
     timings: {
       thisWeekRange,
@@ -193,18 +215,23 @@ export default function Dashboard({ loaderData }) {
             </div>
           </CardFooter>
         </Card>
-
         <Card className="@container/card h-fit">
           <CardHeader>
-            <CardDescription>Spends this month</CardDescription>
+            <CardDescription>Investments this month</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {formatIndianCurrency(transactions.thisMonth._sum.amountExtract)}
+              {formatIndianCurrency(
+                transactions.investmentsThisMonth._sum.amountExtract
+              )}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
                 <ShowArrow
-                  oldValue={transactions.lastMonth._sum.amountExtract}
-                  newValue={transactions.thisMonth._sum.amountExtract}
+                  oldValue={
+                    transactions.investmentsLastMonth._sum.amountExtract
+                  }
+                  newValue={
+                    transactions.investmentsThisMonth._sum.amountExtract
+                  }
                   showValue={true}
                 />
               </Badge>
@@ -214,12 +241,14 @@ export default function Dashboard({ loaderData }) {
             <div className="line-clamp-1 flex gap-2 font-medium">
               Compared to last month
               <ShowArrow
-                oldValue={transactions.lastMonth._sum.amountExtract}
-                newValue={transactions.thisMonth._sum.amountExtract}
+                oldValue={transactions.investmentsLastMonth._sum.amountExtract}
+                newValue={transactions.investmentsThisMonth._sum.amountExtract}
               />
             </div>
             <div className="text-muted-foreground">
-              {formatIndianCurrency(transactions.lastMonth._sum.amountExtract)}
+              {formatIndianCurrency(
+                transactions.investmentsLastMonth._sum.amountExtract
+              )}
             </div>
           </CardFooter>
         </Card>
@@ -287,7 +316,12 @@ export default function Dashboard({ loaderData }) {
   );
 }
 
-const ShowArrow = ({ newValue, oldValue, showValue = false }) => {
+const ShowArrow = ({
+  newValue,
+  oldValue,
+  showValue = false,
+  downGood = true,
+}) => {
   const number = showValue
     ? Math.round(((newValue - oldValue) / newValue) * 100)
     : null;
