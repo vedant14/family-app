@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { classNames } from "~/utils/helperFunctions";
 
 export const TableCells = {
   Input: ({
@@ -16,6 +17,7 @@ export const TableCells = {
     defaultValue,
     type = "text",
     className = "",
+    checked,
   }) => (
     <TableCell className={`p-0 ${className}`}>
       <input
@@ -24,7 +26,19 @@ export const TableCells = {
         defaultValue={defaultValue}
         form={formId}
         placeholder={placeholder}
-        className="px-4 w-full min-h-7 border-0 focus:outline-none rounded-md focus:ring-none"
+        checked={checked}
+        className="px-2 w-full border-0 focus:outline-none rounded-md focus:ring-none min-h-7"
+      />
+    </TableCell>
+  ),
+  Check: ({ formId, name, defaultChecked, className = "", children }) => (
+    <TableCell className={`p-0 ${className}`}>
+      <input
+        type="checkbox"
+        name={name}
+        form={formId}
+        defaultChecked={defaultChecked}
+        className="px-2 w-full border-0 focus:outline-none rounded-md focus:ring-none min-h-5 accent-neutral-500 hover:accent-neutral-700"
       />
     </TableCell>
   ),

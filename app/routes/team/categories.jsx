@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { useLoaderData, Form } from "react-router";
+import prisma from "~/utils/prismaClient";
+import colors from "~/data/colors.json";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +24,6 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { TableCells } from "~/components/ui/tableCells";
-import prisma from "~/utils/prismaClient";
-import colors from "~/data/colors.json";
-import { useState } from "react";
 
 export async function loader({ params }) {
   const categories = await prisma.category.findMany({
@@ -40,38 +40,54 @@ export async function loader({ params }) {
 }
 
 export async function action({ params, request }) {
+  function getBooleanFromFormData(formData, key) {
+    const value = formData.get(key)?.toString();
+    return value === "true" || value === "on";
+  }
+
   const formData = await request.formData();
   const intent = formData.get("intent");
-  console.log(params);
   if (!params.teamId) {
     return null;
   }
   if (intent === "add") {
     const categoryName = formData.get("categoryName");
     const colorCode = formData.get("colorCode");
+    const isDontTrack = getBooleanFromFormData(formData, "isDontTrack");
+    const isInvestment = getBooleanFromFormData(formData, "isInvestment");
     const teamId = Number(params.teamId);
-    await prisma.category.create({ data: { categoryName, teamId, colorCode } });
+    await prisma.category.create({
+      data: { categoryName, teamId, colorCode, isDontTrack, isInvestment },
+    });
+    return true;
   }
 
   if (intent === "delete") {
     const id = Number(formData.get("id"));
     await prisma.category.delete({ where: { id } });
+    return true;
   }
 
   if (intent === "edit") {
     const id = Number(formData.get("id"));
     const categoryName = formData.get("categoryName");
     const colorCode = formData.get("colorCode");
+    const isDontTrack = getBooleanFromFormData(formData, "isDontTrack");
+    const isInvestment = getBooleanFromFormData(formData, "isInvestment");
     await prisma.category.update({
       where: { id },
-      data: { categoryName, colorCode },
+      data: { categoryName, colorCode, isDontTrack, isInvestment },
     });
+    return true;
   }
 
   return null;
 }
+export function HydrateFallback() {
+  return <div>Loading...</div>;
+}
 
-export default function Categories({ loaderData }) {
+export default function Categories({ loaderData, actionData }) {
   const categories = loaderData;
   if (!categories) {
     return null;
@@ -82,7 +98,6 @@ export default function Categories({ loaderData }) {
     const [selectedColor, setSelectedColor] = useState(null);
     const formId = `edit-form-${category.id}`;
     const displayColor = selectedColor ?? category.colorCode ?? "#808080";
-    console.log("VEDANT", category);
     return (
       <TableRow key={category.id} className="h-12">
         <TableCells.Input
@@ -122,8 +137,20 @@ export default function Categories({ loaderData }) {
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>
-        <TableCell className="w-32">Inve</TableCell>
-        <TableCell className="w-32">Don't track</TableCell>
+        <TableCells.Check
+          formId={formId}
+          type="checkbox"
+          name="isInvestment"
+          className="w-32"
+          defaultChecked={category.isInvestment}
+        />
+        <TableCells.Check
+          formId={formId}
+          type="checkbox"
+          name="isDontTrack"
+          className="w-32"
+          defaultChecked={category.isDontTrack}
+        />
         <TableCell className="text-center w-32">
           <Form method="post" id={formId}>
             <input type="hidden" name="id" value={category.id} />
@@ -225,8 +252,18 @@ export default function Categories({ loaderData }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
-            <TableCell className="w-32">Inve</TableCell>
-            <TableCell className="w-32">Don't track</TableCell>
+            <TableCells.Check
+              formId="add-form"
+              type="checkbox"
+              name="isInvestment"
+              className="w-32"
+            />
+            <TableCells.Check
+              formId="add-form"
+              type="checkbox"
+              name="isDontTrack"
+              className="w-32"
+            />
             <TableCell className="text-center w-32">
               <Form method="post" id="add-form" className="">
                 <input type="hidden" name="colorCode" value={newSelectColor} />
