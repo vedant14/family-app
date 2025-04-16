@@ -45,12 +45,12 @@ export const TableCells = {
   Text: ({ children, className = "" }) => (
     <TableCell className={`px-4 ${className}`}>{children}</TableCell>
   ),
-  Select: ({ formId, name, value, className = "", children }) => (
+  Select: ({ formId, name, defaultValue, className = "", children }) => (
     <TableCell className={`p-0 ${className}`}>
       <select
         name={name}
         form={formId}
-        defaultValue={value}
+        defaultValue={defaultValue}
         className={`h-full px-4 border-0 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-md focus:ring-inset ${className}`}
       >
         {children}

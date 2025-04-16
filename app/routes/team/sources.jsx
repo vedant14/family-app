@@ -27,15 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
-const COLUMN_WIDTHS = {
-  sourceName: "w-[200px]",
-  query: "w-[300px]",
-  regex: "w-[250px]",
-  sourceType: "min-w-[150px]",
-  defaultType: "min-w-[150px]",
-  category: "min-w-[200px]",
-};
-
 export async function action({ request, params }) {
   const formData = Object.fromEntries(await request.formData());
   const { intent, id, ...data } = formData;
@@ -115,6 +106,7 @@ export async function action({ request, params }) {
         categoryId,
         defaultType,
       } = data;
+
       await prisma.source.update({
         where: { id: Number(id) },
         data: {
@@ -202,14 +194,14 @@ function SourceRow({ source, categories, i }) {
       <TableCells.Input
         formId={formId}
         name="sourceName"
-        className={COLUMN_WIDTHS.sourceName}
+        className="!min-w-[200px]"
         defaultValue={source.sourceName}
       />
       <TableCells.Select
         formId={formId}
         name="sourceType"
+        className="!min-w-[100px]"
         defaultValue={source.sourceType}
-        className={COLUMN_WIDTHS.sourceType}
       >
         <option value="MAIL">MAIL</option>
         <option value="API">API</option>
@@ -218,63 +210,56 @@ function SourceRow({ source, categories, i }) {
       <TableCells.Input
         formId={formId}
         name="query"
-        className={COLUMN_WIDTHS.query}
+        className="!min-w-[400px]"
         defaultValue={source.query}
       />
       <TableCells.Input
         formId={formId}
         name="amountRegex"
-        className={COLUMN_WIDTHS.regex}
+        className="!min-w-[300px]"
         defaultValue={source.amountRegex}
       />
       <TableCells.Input
         formId={formId}
         name="amountRegexBackup"
-        className={COLUMN_WIDTHS.regex}
+        className="!min-w-[100px]"
         defaultValue={source.amountRegexBackup}
       />
       <TableCells.Input
         formId={formId}
         name="payeeRegex"
-        className={COLUMN_WIDTHS.regex}
+        className="!min-w-[300px]"
         defaultValue={source.payeeRegex}
       />
       <TableCells.Input
         formId={formId}
         name="payeeRegexBackup"
-        className={COLUMN_WIDTHS.regex}
+        className="!min-w-[100px]"
         defaultValue={source.payeeRegexBackup}
       />
-      <TableCell>
-        <select
-          name="defaultType"
-          form={formId}
-          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
-          defaultValue={source.defaultType || ""}
-        >
-          <option value="" disabled>
-            Select type
+      <TableCells.Select
+        formId={formId}
+        name="defaultType"
+        className="!min-w-[100px]"
+        defaultValue={source.defaultType}
+      >
+        <option value="EXPENSE">EXPENSE</option>
+        <option value="INCOME">INCOME</option>
+      </TableCells.Select>
+      <TableCells.Select
+        formId={formId}
+        name="categoryId"
+        className="!min-w-[100px]"
+        defaultValue={source.defaultCategory?.id}
+      >
+        <option value={null}>Select category</option>
+        {categories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.categoryName}
           </option>
-          <option value="EXPENSE">EXPENSE</option>
-          <option value="INCOME">INCOME</option>
-        </select>
-      </TableCell>
-      <TableCell className="p-0">
-        <select
-          name="categoryId"
-          form={formId}
-          className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
-          defaultValue={source.defaultCategory?.id || ""}
-        >
-          <option value={null}>Select category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.categoryName}
-            </option>
-          ))}
-        </select>
-      </TableCell>
-      <TableCells.Text>{source.status}</TableCells.Text>
+        ))}
+      </TableCells.Select>
+      <TableCells.Text>{source.status.toLowerCase()}</TableCells.Text>
       <TableCell className="px-6 whitespace-nowrap text-right text-sm font-medium flex gap-x-2">
         <Form method="post" id={formId} className="py-2">
           <input type="hidden" name="id" value={source.id} />
@@ -342,18 +327,8 @@ function NewSourceRow({ categories, actionData }) {
   return (
     <TableRow>
       <TableCells.Text>New Row</TableCells.Text>
-      <TableCells.Input
-        formId={formId}
-        name="sourceName"
-        className={COLUMN_WIDTHS.sourceName}
-        required
-      />
-      <TableCells.Select
-        formId={formId}
-        name="sourceType"
-        value=""
-        className={COLUMN_WIDTHS.sourceType}
-      >
+      <TableCells.Input formId={formId} name="sourceName" required />
+      <TableCells.Select formId={formId} name="sourceType" value="">
         <option value="" disabled>
           Select type
         </option>
@@ -361,31 +336,11 @@ function NewSourceRow({ categories, actionData }) {
         <option value="API">API</option>
       </TableCells.Select>
       <TableCells.Text>-</TableCells.Text>
-      <TableCells.Input
-        formId={formId}
-        name="query"
-        className={COLUMN_WIDTHS.query}
-      />
-      <TableCells.Input
-        formId={formId}
-        name="amountRegex"
-        className={COLUMN_WIDTHS.regex}
-      />
-      <TableCells.Input
-        formId={formId}
-        name="amountRegexBackup"
-        className={COLUMN_WIDTHS.regex}
-      />
-      <TableCells.Input
-        formId={formId}
-        name="payeeRegex"
-        className={COLUMN_WIDTHS.regex}
-      />
-      <TableCells.Input
-        formId={formId}
-        name="payeeRegexBackup"
-        className={COLUMN_WIDTHS.regex}
-      />
+      <TableCells.Input formId={formId} name="query" />
+      <TableCells.Input formId={formId} name="amountRegex" />
+      <TableCells.Input formId={formId} name="amountRegexBackup" />
+      <TableCells.Input formId={formId} name="payeeRegex" />
+      <TableCells.Input formId={formId} name="payeeRegexBackup" />
       <TableCell className="p-0">
         <select
           name="defaultType"
@@ -456,55 +411,37 @@ export default function Sources({ loaderData, actionData }) {
           </Button>
         </Dialog>
       </div>
-      <div className="rounded-md border overflow-hidden">
-        <div className="overflow-auto scrollbar-hide">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="w-[60px]">ID</TableHead>
-                <TableHead className={COLUMN_WIDTHS.sourceName}>
-                  Source Title *
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.sourceType}>
-                  Type *
-                </TableHead>
-                <TableHead className="w-[150px]">User</TableHead>
-                <TableHead className={COLUMN_WIDTHS.query}>Query</TableHead>
-                <TableHead className={COLUMN_WIDTHS.regex}>
-                  Amount Regex
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.regex}>
-                  Amount Regex Backup
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.regex}>
-                  Payee Regex
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.regex}>
-                  Payee Regex Backup
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.defaultType}>
-                  Default Type
-                </TableHead>
-                <TableHead className={COLUMN_WIDTHS.category}>
-                  Default Category
-                </TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
-                <TableHead className="w-[150px] text-center">...</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sources.map((source, i) => (
-                <SourceRow
-                  key={source.id}
-                  source={source}
-                  categories={categories}
-                  i={i}
-                />
-              ))}
-              <NewSourceRow categories={categories} actionData={actionData} />
-            </TableBody>
-          </Table>
-        </div>
+      <div className="rounded-md border overflow-scroll">
+        <Table>
+          <TableHeader className="bg-muted">
+            <TableRow>
+              <TableHead className="w-[60px]">ID</TableHead>
+              <TableHead>Source Title *</TableHead>
+              <TableHead>Type *</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Query</TableHead>
+              <TableHead>Amount Regex</TableHead>
+              <TableHead>Amount Regex Backup</TableHead>
+              <TableHead>Payee Regex</TableHead>
+              <TableHead>Payee Regex Backup</TableHead>
+              <TableHead>Default Type</TableHead>
+              <TableHead>Default Category</TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead className="w-[150px] text-center">...</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sources.map((source, i) => (
+              <SourceRow
+                key={source.id}
+                source={source}
+                categories={categories}
+                i={i}
+              />
+            ))}
+            <NewSourceRow categories={categories} actionData={actionData} />
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

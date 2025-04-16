@@ -1,4 +1,3 @@
-// gmail-fetch-cron.js
 import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 import { htmlToText } from "html-to-text";
@@ -266,12 +265,8 @@ async function processSource(sourceObj, initialToken = null, retryCount = 0) {
   }
 }
 
-/**
- * Main function
- */
 async function main() {
   console.log("Starting Gmail fetch cron job...");
-
   try {
     const sources = await prisma.source.findMany({
       where: {

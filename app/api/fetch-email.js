@@ -1,187 +1,333 @@
 import axios from "axios";
-import { getBody } from "~/utils/helperFunctions";
+import { htmlToText } from "html-to-text";
 import prisma from "~/utils/prismaClient";
+const BASE_URL = process.env.BASE_URL;
+if (!BASE_URL) {
+  console.error("❌ BASE_URL environment variable is not set");
+  process.exit(1);
+}
+
+// Configuration
+const CONFIG = {
+  daysToFetch: process.env.DAYS_TO_FETCH
+    ? parseInt(process.env.DAYS_TO_FETCH)
+    : 2,
+  maxRetries: process.env.MAX_RETRIES ? parseInt(process.env.MAX_RETRIES) : 3,
+  retryDelay: process.env.RETRY_DELAY
+    ? parseInt(process.env.RETRY_DELAY)
+    : 1000,
+};
+
+export function getBody(emailData) {
+  let body = "";
+  if (emailData.payload.body?.data) {
+    body = Buffer.from(emailData.payload.body.data, "base64").toString("utf-8");
+    return body;
+  }
+
+  if (emailData.payload.parts) {
+    const textPart = emailData.payload.parts.find(
+      (part) => part.mimeType === "text/plain"
+    );
+
+    if (textPart?.body?.data) {
+      body = Buffer.from(textPart.body.data, "base64").toString("utf-8");
+      return body;
+    }
+
+    // Fallback: Try to find HTML part and convert to plain text
+    const htmlPart = emailData.payload.parts.find(
+      (part) => part.mimeType === "text/html"
+    );
+    if (htmlPart?.body?.data) {
+      const html = Buffer.from(htmlPart.body.data, "base64").toString("utf-8");
+      body = htmlToText(html, {
+        wordwrap: false,
+        selectors: [
+          { selector: "a", options: { hideLinkHrefIfSameAsText: true } },
+        ],
+      });
+      return body;
+    }
+  }
+
+  // If nothing found
+  return "";
+}
 
 async function refreshAccessToken(userId, email) {
   console.log(`🔄 Fetching new access token for ${email}...`);
   try {
-    const response = await axios.post(
-      `${process.env.BASE_URL}/api/fetch-token`,
-      {
-        email,
-      }
-    );
-    if (response.status !== 200 || !response.data.accessToken) {
+    const response = await axios.post(`${BASE_URL}/api/fetch-token`, { email });
+
+    if (response.status !== 200 || !response.data.user.accessToken) {
       throw new Error("❌ Failed to refresh access token");
     }
-    await prisma.user.update({
-      where: { id: userId },
-      data: { accessToken: response.data.accessToken },
-    });
 
-    return response.data.accessToken;
+    return response.data.user.accessToken;
   } catch (error) {
-    console.error("❌ Error refreshing token:", error);
-    throw error;
+    console.error("❌ Error refreshing token:", error.message);
+    throw new Error(`Failed to refresh token for ${email}: ${error.message}`);
   }
 }
 
-export const action = async ({ request }) => {
-  let { sourceId, days } = await request.json();
-  if (!days) {
-    days = 2;
-  }
-  if (isNaN(sourceId)) {
-    return new Response(JSON.stringify({ error: "Invalid sourceId format" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
+async function fetchWithRetry(url, token, retries = 0) {
+  try {
+    return await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
     });
+  } catch (error) {
+    if (error.response?.status === 401 || retries >= CONFIG.maxRetries) {
+      throw error; // Let the calling function handle 401 or max retries reached
+    }
+
+    console.log(`Retrying (${retries + 1}/${CONFIG.maxRetries})...`);
+    await new Promise((resolve) => setTimeout(resolve, CONFIG.retryDelay));
+    return fetchWithRetry(url, token, retries + 1);
   }
-  const sourceObj = await prisma.source.findUnique({
-    where: { id: Number(sourceId) },
-    select: {
-      query: true,
-      defaultCategory: {
-        select: {
-          id: true,
-        },
-      },
-      defaultType: true,
-      user: {
-        select: {
-          id: true,
-          user: {
-            select: {
-              id: true,
-              accessToken: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  });
+}
+
+async function processSource(
+  sourceObj,
+  daysToFetch,
+  initialToken = null,
+  retryCount = 0
+) {
+  const sourceId = sourceObj.id;
+  const sourceName = sourceObj.sourceName;
   if (!sourceObj || !sourceObj.user) {
-    return new Response(
-      JSON.stringify({
-        error: "Source or user not found",
-        sourceObj,
-        sourceId,
-      }),
-      {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    console.error("Source or user not found", { sourceId });
+    return { error: "Source or user not found", sourceId };
   }
+
+  if (retryCount >= CONFIG.maxRetries) {
+    console.error(
+      `Max retries reached for source ${sourceName} (ID: ${sourceId})`
+    );
+    return { error: "Max retries reached", sourceId };
+  }
+
+  console.log(`Processing source: ${sourceName} (ID: ${sourceId})`);
   const today = new Date();
   const pastDate = new Date(today);
-  pastDate.setDate(today.getDate() - days);
+  const finalDaysToFetch = daysToFetch || CONFIG.daysToFetch;
+  pastDate.setDate(today.getDate() - finalDaysToFetch);
   const afterDate = pastDate.toISOString().split("T")[0].replace(/-/g, "/");
-
   let queryParts = sourceObj.query ? [`${sourceObj.query}`] : [];
   queryParts.push(`after:${afterDate}`);
   const query = queryParts.join(" ");
-  let accessToken = sourceObj.user.user.accessToken;
+  let accessToken = initialToken || sourceObj.user.user.accessToken;
+
   try {
-    const listResponse = await axios.get(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
+    const listResponse = await fetchWithRetry(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(
+        query
+      )}`,
+      accessToken
     );
 
     const messages = listResponse.data.messages || [];
 
     if (messages.length === 0) {
-      return new Response(
-        JSON.stringify({ message: `No emails found for query: ${query}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
+      console.log(`No emails found for query: ${query}`);
+      return { message: `No emails found for query: ${query}`, sourceId };
     }
-    // Fetch existing email IDs to avoid duplicates
     const emailIds = messages.map((m) => m.id);
     const existingEmails = await prisma.ledger.findMany({
       where: { emailId: { in: emailIds } },
       select: { emailId: true },
     });
     const existingEmailIds = new Set(existingEmails.map((e) => e.emailId));
-
-    // Process only new emails
     const newMessages = messages.filter((m) => !existingEmailIds.has(m.id));
 
     if (newMessages.length === 0) {
-      return new Response(
-        JSON.stringify({
-          message: "All emails already processed.",
-          totalFetched: messages.length,
-          existingEmailIds,
-        }),
-        { headers: { "Content-Type": "application/json" } }
+      console.log(`All emails already processed for source: ${sourceId}`);
+      return { message: "All emails already processed.", sourceId };
+    }
+
+    console.log(
+      `Processing ${newMessages.length} new emails for source: ${sourceId}`
+    );
+
+    const processedEmails = await prisma
+      .$transaction(async (tx) => {
+        const results = [];
+
+        for (const message of newMessages) {
+          try {
+            const messageResponse = await fetchWithRetry(
+              `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
+              accessToken
+            );
+
+            const emailData = messageResponse.data;
+            const headers = emailData.payload.headers || [];
+            const subject =
+              headers.find((header) => header.name === "Subject")?.value ||
+              "No Subject";
+            const emailDate =
+              headers.find((header) => header.name === "Date")?.value || "";
+            const receivedDate = new Date(emailDate);
+            const body = getBody(emailData);
+
+            // Upsert into database within transaction
+            const result = await tx.ledger.create({
+              data: {
+                date: receivedDate,
+                userId: sourceObj.user.id,
+                emailSubject: subject,
+                body,
+                categoryId: sourceObj.defaultCategory?.id,
+                transactionTypeExtract: sourceObj.defaultType,
+                emailId: message.id,
+                sourceId: Number(sourceId),
+              },
+            });
+            console.log(`Processed email: ${message.id} (${subject})`);
+            results.push({ id: message.id, sourceName, subject });
+          } catch (emailError) {
+            console.error(
+              `❌ Error processing email ${message.id}:`,
+              emailError.message
+            );
+            throw emailError; // Rollback transaction on error
+          }
+        }
+        return results;
+      })
+      .catch(async (txError) => {
+        if (txError.response?.status === 401) {
+          console.log(
+            `🔄 Token expired during transaction. Fetching new token...`
+          );
+          try {
+            const newToken = await refreshAccessToken(
+              sourceObj.user.user.id,
+              sourceObj.user.user.email
+            );
+            // Retry with new token and increment retry count
+            return processSource(sourceObj, newToken, retryCount + 1);
+          } catch (refreshError) {
+            console.error(
+              `Failed to refresh token for source ${sourceId}:`,
+              refreshError.message
+            );
+            return { error: "Failed to refresh token", sourceId };
+          }
+        }
+
+        // Other transaction errors
+        console.error(
+          `Transaction error for source ${sourceId}:`,
+          txError.message
+        );
+        return { error: txError.message, sourceId };
+      });
+
+    if (Array.isArray(processedEmails)) {
+      console.log(
+        `Successfully processed ${processedEmails.length} emails for source: ${sourceId}`
       );
     }
 
-    const emails = await Promise.all(
-      newMessages.map(async (message) => {
-        try {
-          const messageResponse = await axios.get(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}`,
-            {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          );
-
-          const emailData = messageResponse.data;
-          const headers = emailData.payload.headers || [];
-          const subject =
-            headers.find((header) => header.name === "Subject")?.value ||
-            "No Subject";
-          const emailDate =
-            headers.find((header) => header.name === "Date")?.value || "";
-          const receivedDate = new Date(emailDate);
-          const body = getBody(emailData);
-
-          // Upsert into database
-          await prisma.ledger.create({
-            data: {
-              date: receivedDate,
-              userId: sourceObj.user.id,
-              emailSubject: subject,
-              body,
-              categoryId: sourceObj.defaultCategory?.id,
-              transactionTypeExtract: sourceObj.defaultType,
-              emailId: message.id,
-              sourceId: Number(sourceId),
-            },
-          });
-
-          return { id: message.id };
-        } catch (emailError) {
-          console.error(
-            `❌ Error processing email ${message.id}:`,
-            emailError.response?.data || emailError.message
-          );
-          return null;
-        }
-      })
-    );
-
-    return new Response(JSON.stringify(emails.filter(Boolean)), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return {
+      sourceId,
+      sourceName,
+      result: processedEmails,
+    };
   } catch (error) {
     if (error.response?.status === 401) {
       console.log(`🔄 Token expired. Fetching new token...`);
-      accessToken = await refreshAccessToken(
-        sourceObj.user.id,
-        sourceObj.user.email
-      );
-    } else {
-      throw error;
+      try {
+        const newToken = await refreshAccessToken(
+          sourceObj.user.user.id,
+          sourceObj.user.user.email
+        );
+        // Retry with new token and increment retry count
+        return processSource(sourceObj, newToken, retryCount + 1);
+      } catch (refreshError) {
+        console.error(
+          `Failed to refresh token for source ${sourceId}:`,
+          refreshError.message
+        );
+        return { error: "Failed to refresh token", sourceId };
+      }
     }
-  }
 
-  return new Response(JSON.stringify({ sourceObj }), {
-    headers: { "Content-Type": "application/json" },
-  });
-};
+    console.error(`Error processing source ${sourceId}:`, error.message);
+    return { error: error.message, sourceId };
+  }
+}
+export async function action({ request }) {
+  try {
+    const body = await request.json();
+
+    const sourceIdInput = body.sourceId;
+    const daysToFetchInput = body.daysToFetch;
+    // --- Input Validation ---
+    if (!sourceIdInput) {
+      return json({ error: "sourceId is required" }, { status: 400 });
+    }
+
+    const sourceId = Number(sourceIdInput);
+    if (isNaN(sourceId) || !Number.isInteger(sourceId) || sourceId <= 0) {
+      return json({ error: "Invalid sourceId provided" }, { status: 400 });
+    }
+    let daysToFetch = 5; // Default value
+    if (daysToFetchInput !== undefined) {
+      const parsedDays = Number(daysToFetchInput);
+      if (
+        isNaN(parsedDays) ||
+        !Number.isInteger(parsedDays) ||
+        parsedDays <= 0
+      ) {
+        return json(
+          {
+            error: "Invalid daysToFetch provided. Must be a positive integer.",
+          },
+          { status: 400 }
+        );
+      }
+      daysToFetch = parsedDays;
+    }
+
+    const sourceObj = await prisma.source.findFirst({
+      where: {
+        id: sourceId,
+      },
+      select: {
+        id: true,
+        sourceName: true,
+        query: true,
+        defaultCategory: {
+          select: {
+            id: true,
+          },
+        },
+        defaultType: true,
+        user: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                accessToken: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const result = await processSource(sourceObj, daysToFetch);
+
+    return new Response(
+      JSON.stringify({
+        result,
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching sources:", error);
+  }
+}
