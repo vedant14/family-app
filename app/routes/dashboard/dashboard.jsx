@@ -233,6 +233,7 @@ export default function Dashboard({ loaderData }) {
                     transactions.investmentsThisMonth._sum.amountExtract
                   }
                   showValue={true}
+                  reverseColors={true}
                 />
               </Badge>
             </CardAction>
@@ -243,6 +244,7 @@ export default function Dashboard({ loaderData }) {
               <ShowArrow
                 oldValue={transactions.investmentsLastMonth._sum.amountExtract}
                 newValue={transactions.investmentsThisMonth._sum.amountExtract}
+                reverseColors={true}
               />
             </div>
             <div className="text-muted-foreground">
@@ -320,21 +322,31 @@ const ShowArrow = ({
   newValue,
   oldValue,
   showValue = false,
-  downGood = true,
+  reverseColors = false,
 }) => {
-  const number = showValue
-    ? Math.round(((newValue - oldValue) / newValue) * 100)
-    : null;
+  const percentageChange =
+    newValue !== 0 && showValue
+      ? Math.round(((newValue - oldValue) / Math.abs(newValue)) * 100)
+      : null;
+
+  if (newValue === oldValue) {
+    return showValue ? <span>0 %</span> : null;
+  }
+
   const isDown = oldValue > newValue;
+  const downArrowColor = reverseColors ? "stroke-red-400" : "stroke-green-600";
+  const upArrowColor = reverseColors ? "stroke-green-600" : "stroke-red-400";
 
   return (
     <>
       {isDown ? (
-        <IconTrendingDown className="size-5 stroke-green-600" />
+        <IconTrendingDown className={`size-5 ${downArrowColor}`} />
       ) : (
-        <IconTrendingUp className="size-5 stroke-red-400" />
+        <IconTrendingUp className={`size-5 ${upArrowColor}`} />
       )}
-      {number !== null && <span>{number} %</span>}
+      {percentageChange !== null && (
+        <span className="ml-1">{percentageChange} %</span>
+      )}
     </>
   );
 };
