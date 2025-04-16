@@ -9,13 +9,21 @@ import {
 } from "~/components/ui/table";
 
 export const TableCells = {
-  Input: ({ formId, name, defaultValue, type = "text", className = "" }) => (
+  Input: ({
+    formId,
+    name,
+    placeholder,
+    defaultValue,
+    type = "text",
+    className = "",
+  }) => (
     <TableCell className={`p-0 ${className}`}>
       <input
         type={type}
         name={name}
         defaultValue={defaultValue}
         form={formId}
+        placeholder={placeholder}
         className="px-4 w-full min-h-7 border-0 focus:outline-none rounded-md focus:ring-none"
       />
     </TableCell>

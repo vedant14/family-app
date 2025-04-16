@@ -266,9 +266,7 @@ function SourceRow({ source, categories, i }) {
           className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue={source.defaultCategory?.id || ""}
         >
-          <option value="" disabled>
-            Select category
-          </option>
+          <option value={null}>Select category</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.categoryName}
@@ -409,9 +407,7 @@ function NewSourceRow({ categories, actionData }) {
           className="h-full min-h-[38px] px-4 w-full border-0 focus:outline-none"
           defaultValue=""
         >
-          <option value="" disabled>
-            Select category
-          </option>
+          <option value={null}>Select category</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.categoryName}
