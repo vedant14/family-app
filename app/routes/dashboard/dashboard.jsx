@@ -46,6 +46,7 @@ export async function loader({ params }) {
   };
   const baseWhere = {
     user: { teamId: teamId },
+    transactionTypeExtract: "EXPENSE",
     status: { in: ["CREATED", "EXTRACTED", "MANUAL"] },
   };
 
