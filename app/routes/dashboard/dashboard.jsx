@@ -21,12 +21,13 @@ import {
 } from "~/components/ui/card";
 import { formatIndianCurrency } from "~/utils/helperFunctions";
 import { useAuthStore } from "~/utils/store";
+
 export async function loader({ params }) {
   if (!params?.teamId) return null;
   const teamId = Number(params.teamId);
 
-  const nowUTC = new Date(); // This will be in the server's local timezone initially
-  const nowForUTC = new Date(nowUTC.toISOString()); // Convert to a UTC Date object
+  const nowUTC = new Date();
+  const nowForUTC = new Date(nowUTC.toISOString());
   // Time Ranges in UTC
   const thisWeekRange = {
     gte: startOfWeekUTC(nowForUTC),
@@ -46,35 +47,91 @@ export async function loader({ params }) {
   };
   const baseWhere = {
     user: { teamId: teamId },
-    transactionTypeExtract: "EXPENSE",
     status: { in: ["CREATED", "EXTRACTED", "MANUAL"] },
+    category: { isDontTrack: false },
   };
 
   const [
-    transactionsThisWeek,
-    transactionsLastWeek,
-    transactionsThisMonth,
-    transactionsLastMonth,
+    expensesThisWeek,
+    incomeThisWeek,
+    expensesLastWeek,
+    incomeLastWeek,
+    expensesThisMonth,
+    incomeThisMonth,
+    expensesLastMonth,
+    incomeLastMonth,
     investmentsThisMonth,
     investmentsLastMonth,
   ] = await Promise.all([
     prisma.ledger.aggregate({
-      where: { ...baseWhere, date: thisWeekRange },
+      where: {
+        ...baseWhere,
+        date: thisWeekRange,
+        transactionTypeExtract: "EXPENSE",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, date: lastWeekRange },
+      where: {
+        ...baseWhere,
+        date: thisWeekRange,
+        transactionTypeExtract: "INCOME",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, date: thisMonthRange },
+      where: {
+        ...baseWhere,
+        date: lastWeekRange,
+        transactionTypeExtract: "EXPENSE",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.aggregate({
-      where: { ...baseWhere, date: lastMonthRange },
+      where: {
+        ...baseWhere,
+        date: lastWeekRange,
+        transactionTypeExtract: "INCOME",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: thisMonthRange,
+        transactionTypeExtract: "EXPENSE",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: thisMonthRange,
+        transactionTypeExtract: "INCOME",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: lastMonthRange,
+        transactionTypeExtract: "EXPENSE",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.aggregate({
+      where: {
+        ...baseWhere,
+        date: lastMonthRange,
+        transactionTypeExtract: "INCOME",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
@@ -83,6 +140,7 @@ export async function loader({ params }) {
         ...baseWhere,
         date: thisMonthRange,
         category: { isInvestment: true },
+        transactionTypeExtract: "EXPENSE",
       },
       _count: { id: true },
       _sum: { amountExtract: true },
@@ -92,29 +150,136 @@ export async function loader({ params }) {
         ...baseWhere,
         date: lastMonthRange,
         category: { isInvestment: true },
+        transactionTypeExtract: "EXPENSE",
       },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
   ]);
 
-  const [categoryGroupsThisWeek, categoryGroupsThisMonth] = await Promise.all([
+  const transactions = {
+    thisWeek: {
+      count: expensesThisWeek._count.id + incomeThisWeek._count.id,
+      amount:
+        (expensesThisWeek._sum.amountExtract || 0) -
+        (incomeThisWeek._sum.amountExtract || 0),
+    },
+    lastWeek: {
+      count: expensesLastWeek._count.id + incomeLastWeek._count.id,
+      amount:
+        (expensesLastWeek._sum.amountExtract || 0) -
+        (incomeLastWeek._sum.amountExtract || 0),
+    },
+    thisMonth: {
+      count: expensesThisMonth._count.id + incomeThisMonth._count.id,
+      amount:
+        (expensesThisMonth._sum.amountExtract || 0) -
+        (incomeThisMonth._sum.amountExtract || 0),
+    },
+    lastMonth: {
+      count: expensesLastMonth._count.id + incomeLastMonth._count.id,
+      amount:
+        (expensesLastMonth._sum.amountExtract || 0) -
+        (incomeLastMonth._sum.amountExtract || 0),
+    },
+    investmentsThisMonth: {
+      count: investmentsThisMonth._count.id,
+      amount: investmentsThisMonth._sum.amountExtract || 0,
+    },
+    investmentsLastMonth: {
+      count: investmentsLastMonth._count.id,
+      amount: investmentsLastMonth._sum.amountExtract || 0,
+    },
+  };
+
+  const [
+    categoryExpensesThisWeek,
+    categoryIncomesThisWeek,
+    categoryExpensesThisMonth,
+    categoryIncomesThisMonth,
+  ] = await Promise.all([
     prisma.ledger.groupBy({
       by: ["categoryId"],
-      where: { ...baseWhere, date: thisWeekRange },
+      where: {
+        ...baseWhere,
+        date: thisWeekRange,
+        transactionTypeExtract: "EXPENSE",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
     prisma.ledger.groupBy({
       by: ["categoryId"],
-      where: { ...baseWhere, date: thisMonthRange },
+      where: {
+        ...baseWhere,
+        date: thisWeekRange,
+        transactionTypeExtract: "INCOME",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.groupBy({
+      by: ["categoryId"],
+      where: {
+        ...baseWhere,
+        date: thisMonthRange,
+        transactionTypeExtract: "EXPENSE",
+      },
+      _count: { id: true },
+      _sum: { amountExtract: true },
+    }),
+    prisma.ledger.groupBy({
+      by: ["categoryId"],
+      where: {
+        ...baseWhere,
+        date: thisMonthRange,
+        transactionTypeExtract: "INCOME",
+      },
       _count: { id: true },
       _sum: { amountExtract: true },
     }),
   ]);
 
+  const mergeCategoryGroups = (expenses, incomes) => {
+    const merged = {};
+
+    expenses.forEach((exp) => {
+      merged[exp.categoryId] = {
+        count: exp._count.id,
+        amount: -(exp._sum.amountExtract || 0),
+      };
+    });
+
+    incomes.forEach((inc) => {
+      if (merged[inc.categoryId]) {
+        merged[inc.categoryId].count += inc._count.id;
+        merged[inc.categoryId].amount += inc._sum.amountExtract || 0;
+      } else {
+        merged[inc.categoryId] = {
+          count: inc._count.id,
+          amount: inc._sum.amountExtract || 0,
+        };
+      }
+    });
+
+    return Object.entries(merged).map(([categoryId, data]) => ({
+      categoryId: Number(categoryId),
+      _count: { id: data.count },
+      _sum: { amountExtract: data.amount },
+    }));
+  };
+
+  const categoryGroupsThisWeek = mergeCategoryGroups(
+    categoryExpensesThisWeek,
+    categoryIncomesThisWeek
+  );
+  const categoryGroupsThisMonth = mergeCategoryGroups(
+    categoryExpensesThisMonth,
+    categoryIncomesThisMonth
+  );
+
   const categories = await prisma.category.findMany({
-    where: { teamId },
+    where: { teamId, isDontTrack: false },
     select: { id: true, categoryName: true, colorCode: true },
     orderBy: { createdAt: "asc" },
   });
@@ -124,20 +289,7 @@ export async function loader({ params }) {
     categories,
     categoryGroupsThisWeek,
     categoryGroupsThisMonth,
-    transactions: {
-      thisWeek: transactionsThisWeek,
-      lastWeek: transactionsLastWeek,
-      thisMonth: transactionsThisMonth,
-      lastMonth: transactionsLastMonth,
-      investmentsThisMonth,
-      investmentsLastMonth,
-    },
-    timings: {
-      thisWeekRange,
-      thisMonthRange,
-      lastWeekRange,
-      lastMonthRange,
-    },
+    transactions,
   };
 }
 export function HydrateFallback() {
@@ -154,7 +306,7 @@ export default function Dashboard({ loaderData }) {
     categoryGroupsThisMonth,
     teamId,
   } = loaderData;
-
+  console.log(loaderData);
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
       <div className="grid grid-cols-2 gap-4">
@@ -162,13 +314,13 @@ export default function Dashboard({ loaderData }) {
           <CardHeader>
             <CardDescription>Spends this week</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {formatIndianCurrency(transactions.thisWeek._sum.amountExtract)}
+              {formatIndianCurrency(transactions.thisWeek.amount)}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
                 <ShowArrow
-                  oldValue={transactions.lastWeek._sum.amountExtract}
-                  newValue={transactions.thisWeek._sum.amountExtract}
+                  oldValue={transactions.lastWeek.amount}
+                  newValue={transactions.thisWeek.amount}
                   showValue={true}
                 />
               </Badge>
@@ -178,12 +330,12 @@ export default function Dashboard({ loaderData }) {
             <div className="line-clamp-1 flex gap-2 font-medium">
               Compared to last week
               <ShowArrow
-                oldValue={transactions.lastWeek._sum.amountExtract}
-                newValue={transactions.thisWeek._sum.amountExtract}
+                oldValue={transactions.lastWeek.amount}
+                newValue={transactions.thisWeek.amount}
               />
             </div>
             <div className="text-muted-foreground">
-              {formatIndianCurrency(transactions.lastWeek._sum.amountExtract)}
+              {formatIndianCurrency(transactions.lastWeek.amount)}
             </div>
           </CardFooter>
         </Card>
@@ -191,13 +343,13 @@ export default function Dashboard({ loaderData }) {
           <CardHeader>
             <CardDescription>Spends this month</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {formatIndianCurrency(transactions.thisMonth._sum.amountExtract)}
+              {formatIndianCurrency(transactions.thisMonth.amount)}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
                 <ShowArrow
-                  oldValue={transactions.lastMonth._sum.amountExtract}
-                  newValue={transactions.thisMonth._sum.amountExtract}
+                  oldValue={transactions.lastMonth.amount}
+                  newValue={transactions.thisMonth.amount}
                   showValue={true}
                 />
               </Badge>
@@ -207,12 +359,12 @@ export default function Dashboard({ loaderData }) {
             <div className="line-clamp-1 flex gap-2 font-medium">
               Compared to last month
               <ShowArrow
-                oldValue={transactions.lastMonth._sum.amountExtract}
-                newValue={transactions.thisMonth._sum.amountExtract}
+                oldValue={transactions.lastMonth.amount}
+                newValue={transactions.thisMonth.amount}
               />
             </div>
             <div className="text-muted-foreground">
-              {formatIndianCurrency(transactions.lastMonth._sum.amountExtract)}
+              {formatIndianCurrency(transactions.lastMonth.amount)}
             </div>
           </CardFooter>
         </Card>
@@ -220,19 +372,13 @@ export default function Dashboard({ loaderData }) {
           <CardHeader>
             <CardDescription>Investments this month</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {formatIndianCurrency(
-                transactions.investmentsThisMonth._sum.amountExtract
-              )}
+              {formatIndianCurrency(transactions.investmentsThisMonth.amount)}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
                 <ShowArrow
-                  oldValue={
-                    transactions.investmentsLastMonth._sum.amountExtract
-                  }
-                  newValue={
-                    transactions.investmentsThisMonth._sum.amountExtract
-                  }
+                  oldValue={transactions.investmentsLastMonth.amount}
+                  newValue={transactions.investmentsThisMonth.amount}
                   showValue={true}
                   reverseColors={true}
                 />
@@ -243,15 +389,13 @@ export default function Dashboard({ loaderData }) {
             <div className="line-clamp-1 flex gap-2 font-medium">
               Compared to last month
               <ShowArrow
-                oldValue={transactions.investmentsLastMonth._sum.amountExtract}
-                newValue={transactions.investmentsThisMonth._sum.amountExtract}
+                oldValue={transactions.investmentsLastMonth.amount}
+                newValue={transactions.investmentsThisMonth.amount}
                 reverseColors={true}
               />
             </div>
             <div className="text-muted-foreground">
-              {formatIndianCurrency(
-                transactions.investmentsLastMonth._sum.amountExtract
-              )}
+              {formatIndianCurrency(transactions.investmentsLastMonth.amount)}
             </div>
           </CardFooter>
         </Card>
