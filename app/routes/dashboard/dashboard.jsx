@@ -306,7 +306,6 @@ export default function Dashboard({ loaderData }) {
     categoryGroupsThisMonth,
     teamId,
   } = loaderData;
-  console.log(loaderData);
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 mb-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
       <div className="grid grid-cols-2 gap-4">

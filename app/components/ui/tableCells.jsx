@@ -38,7 +38,7 @@ export const TableCells = {
         name={name}
         form={formId}
         defaultChecked={defaultChecked}
-        className="px-2 w-full border-0 focus:outline-none rounded-md focus:ring-none min-h-5 accent-neutral-500 hover:accent-neutral-700"
+        className="px-2 w-full border-0 focus:outline-none rounded-md focus:ring-none min-h-4 accent-neutral-500 hover:accent-neutral-700"
       />
     </TableCell>
   ),

@@ -190,6 +190,7 @@ function SourceRow({ source, categories, i }) {
   const formId = `edit-form-${source.id}`;
   return (
     <TableRow className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+      
       <TableCells.Text>{source.id}</TableCells.Text>
       <TableCells.Input
         formId={formId}
@@ -406,7 +407,7 @@ export default function Sources({ loaderData, actionData }) {
             className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             onClick={() => toggleOpen("add")}
           >
-            <IconCirclePlusFilled />
+            <IconCirclePlusFilled className="fill-gray-50" />
             <span>Add Source</span>
           </Button>
         </Dialog>
