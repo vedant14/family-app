@@ -209,6 +209,8 @@ export default function Transactions({ loaderData }) {
     }
     if (tagParam) {
       const tagIds = tagParam.split(",").map(Number);
+      const initialSelectedTags = tags.filter((tag) => tagIds.includes(tag.id));
+      setSelectedTags(initialSelectedTags);
     }
   }, [location.search, categories, tags]);
 
