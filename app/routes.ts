@@ -11,6 +11,7 @@ export default [
       route("manage-team", "./routes/team/manage-team.jsx"),
     ]),
   ]),
+  route("api/:teamId/fetch-transactions/:startDate/:endDate", "./api/fetch-transactions.js"),
   route("logout", "./routes/auth/logout.jsx"),
   route("login", "./routes/auth/login.jsx"),
   route("api/create-user", "./api/create-user.js"),
@@ -18,6 +19,7 @@ export default [
   route("api/fetch-email", "./api/fetch-email.js"),
   route("api/extract-info", "./api/extract-info.js"),
   route("api/add/:sourceId", "./api/add-transaction.js"),
+
   route("api/debug-ledger/:ledgerId", "./api/debug-ledger.js"),
   route("api/delete-transaction/:ledgerId", "./api/delete-transaction.js"),
 ] satisfies RouteConfig;

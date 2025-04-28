@@ -26,12 +26,12 @@ import {
 import { useState } from "react";
 import { AddTags } from "./addTags";
 
-export function LedgerTable({
-  filteredTransactions,
-  categories,
-  transactions,
-  tags,
-}) {
+export function LedgerTable({ transactions, categories, tags }) {
+  if (!Array.isArray(transactions)) {
+    // Handle the case where transactions is not an array (should be rare with parent checks)
+    console.error("LedgerTable received invalid data:", transactions);
+    return <p>Error loading table data.</p>;
+  }
   const fetcher = useFetcher();
   function LedgerDropDown({ item }) {
     return (
@@ -260,7 +260,7 @@ export function LedgerTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTransactions.map((item, i) => (
+            {transactions.map((item, i) => (
               <LedgerRow item={item} i={i} key={item.id} />
             ))}
           </TableBody>
