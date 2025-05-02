@@ -12,6 +12,7 @@ export default [
     ]),
   ]),
   route("api/:teamId/fetch-transactions/:startDate/:endDate", "./api/fetch-transactions.js"),
+  route("api/:teamId/bulk-add-transactions", "./api/bulk-add-transactions.js"),
   route("logout", "./routes/auth/logout.jsx"),
   route("login", "./routes/auth/login.jsx"),
   route("api/create-user", "./api/create-user.js"),
