@@ -55,3 +55,5 @@
 - [x] Categories have to by dynamic
 
 
+
+- node app/jobs/fixtags.js OLDTAG NEWTAG TEAMID 
