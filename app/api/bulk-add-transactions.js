@@ -76,6 +76,7 @@ const parseCsvData = (csvString) => {
         sourceId: sourceId,
         amount: amount,
         payee: values[3].trim(),
+        tags: values[4].trim(),
       };
       data.push(transaction);
     } catch (rowError) {
@@ -85,12 +86,25 @@ const parseCsvData = (csvString) => {
   return { parsedTransactions: data, parsingErrors: errors };
 };
 
-export const action = async ({ request }) => {
+export const action = async ({ request, params }) => {
   const requestId = crypto.randomUUID();
-  const headers = request.headers;
-  const contentType = headers.get("content-type");
+  const teamIdParam = params?.teamId;
+  const teamId = teamIdParam ? Number(teamIdParam) : NaN;
+
+  if (isNaN(teamId)) {
+    // ... (handle invalid teamId) ...
+    return new Response(
+      JSON.stringify({
+        error: "Invalid or missing teamId in URL path.",
+        ok: false,
+        requestId,
+      }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   if (request.method !== "POST") {
+    // ... (handle invalid method) ...
     return new Response(
       JSON.stringify({
         error: "Invalid request method. Use POST.",
@@ -105,6 +119,7 @@ export const action = async ({ request }) => {
   try {
     csvString = await request.text();
     if (!csvString || csvString.trim().length === 0) {
+      // ... (handle empty body) ...
       return new Response(
         JSON.stringify({
           error: "Request body is empty.",
@@ -115,6 +130,7 @@ export const action = async ({ request }) => {
       );
     }
   } catch (error) {
+    // ... (handle body read error) ...
     console.error(`[Action ${requestId}] Error reading request body:`, error);
     return new Response(
       JSON.stringify({
@@ -127,24 +143,26 @@ export const action = async ({ request }) => {
   }
 
   let parsedResult;
-  let dataForCreateMany = [];
   let sourceIdToUserIdMap = new Map();
+  // Store data needed for ledger creation separately
+  let ledgerDataForCreation = [];
+  // Store tagIds corresponding to each ledger entry (parallel array)
+  let tagsForLedgers = [];
+  let dataProcessingErrors = [];
+  let skippedCount = 0;
 
   try {
     parsedResult = parseCsvData(csvString);
-    const { parsedTransactions, parsingErrors } = parsedResult;
+    dataProcessingErrors.push(...parsedResult.parsingErrors);
+    const { parsedTransactions } = parsedResult;
 
-    if (parsedTransactions.length === 0 && parsingErrors.length > 0) {
-      throw new Error(
-        `CSV parsing failed with errors: ${parsingErrors.join("; ")}`
-      );
-    }
     if (parsedTransactions.length === 0) {
+      // ... (handle no transactions found) ...
       return new Response(
         JSON.stringify({
           message: "CSV processed, but no valid transactions found to create.",
           ok: true,
-          parsingErrors,
+          parsingErrors: dataProcessingErrors,
           requestId,
           transactionsCreated: 0,
         }),
@@ -156,55 +174,71 @@ export const action = async ({ request }) => {
       ...new Set(parsedTransactions.map((tx) => tx.sourceId)),
     ];
 
+    // Pre-fetch UserIDs
     if (uniqueSourceIds.length > 0) {
+      // ... (fetch sources and populate sourceIdToUserIdMap as before) ...
       const sources = await prisma.source.findMany({
-        where: {
-          id: { in: uniqueSourceIds },
-        },
-        select: {
-          id: true,
-          userId: true,
-        },
+        where: { id: { in: uniqueSourceIds }, user: { teamId: teamId } },
+        select: { id: true, userId: true },
       });
-
       sources.forEach((source) => {
         sourceIdToUserIdMap.set(source.id, source.userId);
       });
     }
 
-    const dataProcessingErrors = [...parsingErrors]; // Combine parsing and processing errors
-
+    // --- Step 1: Prepare Ledger Data and Upsert Tags (Collect IDs) ---
     for (const transaction of parsedTransactions) {
       const userId = sourceIdToUserIdMap.get(transaction.sourceId);
       if (userId === undefined) {
         dataProcessingErrors.push(
-          `Transaction skipped: Source ID ${transaction.sourceId} not found or has no associated User ID.`
+          `Transaction skipped: Source ID ${transaction.sourceId} not found or does not belong to Team ${teamId}.`
         );
+        skippedCount++;
         continue;
       }
-
       const dateObject = parseMMDDYYYY(transaction.date);
       if (!dateObject) {
         dataProcessingErrors.push(
           `Transaction skipped: Invalid date format for '${transaction.date}'. Use MM/DD/YYYY.`
         );
+        skippedCount++;
         continue;
       }
 
-      dataForCreateMany.push({
+      // Upsert tags and collect IDs
+      const tagNames = transaction.tags
+        .split(";")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const currentTagIds = [];
+      if (tagNames.length > 0) {
+        for (const tagName of tagNames) {
+          const tagRecord = await prisma.tag.upsert({
+            where: { teamId_tag: { teamId: teamId, tag: tagName } }, // Use correct composite key syntax
+            create: { tag: tagName, teamId: teamId },
+            update: {},
+            select: { id: true },
+          });
+          currentTagIds.push(tagRecord.id);
+        }
+      }
+      ledgerDataForCreation.push({
         date: dateObject,
         userId: userId,
         sourceId: transaction.sourceId,
-        amountExtract: transaction.amount,
+        amountExtract: Math.abs(transaction.amount),
         payeeExtract: transaction.payee,
+        transactionTypeExtract: transaction.amount >= 0 ? "INCOME" : "EXPENSE",
+        status: "MANUAL",
       });
-    }
+      tagsForLedgers.push(currentTagIds);
+    } 
 
-    if (dataForCreateMany.length === 0) {
+    if (ledgerDataForCreation.length === 0) {
       return new Response(
         JSON.stringify({
           message:
-            "Transactions parsed, but none could be prepared for creation due to errors (missing sources, invalid dates, etc.).",
+            "Transactions parsed, but none could be prepared for creation due to errors.",
           ok: false,
           processingErrors: dataProcessingErrors,
           requestId,
@@ -214,19 +248,59 @@ export const action = async ({ request }) => {
       );
     }
 
-    const createResult = await prisma.ledger.createMany({
-      data: dataForCreateMany,
+    const createdLedgers = await prisma.ledger.createManyAndReturn({
+      data: ledgerDataForCreation,
+      // skipDuplicates: true // Consider if needed for Ledger model
     });
+
+    // --- Step 3: Prepare and Bulk Create TagsOnLedgers Links ---
+    const tagsOnLedgersData = [];
+    if (createdLedgers.length !== ledgerDataForCreation.length) {
+      // This indicates an issue, potentially createManyAndReturn didn't work as expected
+      // Or the order assumption is violated, or skipDuplicates removed some ledgers.
+      console.warn(
+        `[Action ${requestId}] Mismatch between prepared ledger count (${ledgerDataForCreation.length}) and created ledger count/returned records (${createdLedgers.length}). Tag linking might be incomplete.`
+      );
+      // Decide how to handle this - maybe only process tags for returned records?
+      // For now, we proceed assuming order holds for the returned records.
+    }
+
+    createdLedgers.forEach((ledger, index) => {
+      const ledgerId = ledger.id; // Get the ID of the created ledger
+      const correspondingTagIds = tagsForLedgers[index]; // Get tags based on index (RISKY)
+
+      if (ledgerId && correspondingTagIds && correspondingTagIds.length > 0) {
+        correspondingTagIds.forEach((tagId) => {
+          tagsOnLedgersData.push({
+            ledgerId: ledgerId,
+            tagId: tagId,
+          });
+        });
+      }
+    });
+
+    let linkResult = null;
+    if (tagsOnLedgersData.length > 0) {
+      linkResult = await prisma.tagsOnLedgers.createMany({
+        data: tagsOnLedgersData,
+        skipDuplicates: true, // Important for join table
+      });
+    }
 
     return new Response(
       JSON.stringify({
-        message: `Successfully created ${createResult.count} ledger entries.`,
-        transactionsCreated: createResult,
-        transactionsSkipped: parsedTransactions.length - createResult.count,
+        message: `Processed ${
+          createdLedgers.length
+        } ledgers. Attempted to link ${linkResult?.count ?? 0} tags.`,
+        ok: true,
+        ledgersCreated: createdLedgers.length, // Or use count from result if available
+        tagsLinked: linkResult?.count ?? 0,
+        transactionsInputCount: parsedTransactions.length,
+        transactionsSkipped: skippedCount,
         processingWarnings: dataProcessingErrors,
         requestId,
       }),
-      { status: 201, headers: { "Content-Type": "application/json" } } // 201 Created is appropriate
+      { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error(
