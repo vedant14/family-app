@@ -10,7 +10,7 @@ export const action = async ({ request }) => {
     console.log("Creating/updating user", profileData.email);
 
     // Upsert user
-    let user = await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: profileData.email },
       update: {
         name: profileData.name,
@@ -30,6 +30,7 @@ export const action = async ({ request }) => {
         tokenExpiry: new Date(Date.now() + expires_in * 1000),
       },
     });
+
     // Check if the user is part of any team
     let existingTeamUser = await prisma.teamUser.findMany({
       where: { userId: user.id },
@@ -44,6 +45,7 @@ export const action = async ({ request }) => {
       },
     });
 
+    // If the user is not in any team, create a new one for them.
     if (!existingTeamUser || existingTeamUser.length === 0) {
       console.log(`Creating a new team for ${user.email}`);
       const newTeam = await prisma.team.create({
@@ -53,7 +55,7 @@ export const action = async ({ request }) => {
       });
 
       // Link user to the new team in TeamUser
-      existingTeamUser = await prisma.teamUser.create({
+      const newTeamUser = await prisma.teamUser.create({
         data: {
           teamId: newTeam.id,
           userId: user.id,
@@ -68,12 +70,18 @@ export const action = async ({ request }) => {
           },
         },
       });
+
+      // *** FIX: Ensure existingTeamUser is an array containing the new object ***
+      existingTeamUser = [newTeamUser];
     }
+
+    // Now, .map() will work correctly in all cases.
     const transformedTeam = existingTeamUser.map((item) => ({
       teamUserId: item.id,
       teamId: item.team.id,
       name: item.team.name,
     }));
+
     return new Response(
       JSON.stringify({ user: user, teams: transformedTeam }),
       {
@@ -86,6 +94,8 @@ export const action = async ({ request }) => {
     return new Response(
       JSON.stringify({
         error: "Authentication failed",
+        // Add the error message for better debugging if not in production
+        message: error.message,
         requestId: crypto.randomUUID(),
       }),
       {

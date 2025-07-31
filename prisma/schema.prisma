@@ -39,6 +39,7 @@ model TeamUser {
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Ledger[]
   sources      Source[]
+  habits       Habit[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime? @updatedAt
 
@@ -116,6 +117,7 @@ model Tag {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime?       @updatedAt
   TagsOnLedgers TagsOnLedgers[]
+
   @@unique([teamId, tag])
 }
 
@@ -125,6 +127,7 @@ model TagsOnLedgers {
   assignedAt DateTime @default(now())
   ledger     Ledger   @relation(fields: [ledgerId], references: [id])
   tag        Tag      @relation(fields: [tagId], references: [id])
+
   @@id([ledgerId, tagId]) // Use composite primary key
 }
 
@@ -145,4 +148,39 @@ model Category {
 enum TransactionType {
   EXPENSE
   INCOME
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ANNUALLY
+}
+
+model Habit {
+  id                Int        @id @default(autoincrement())
+  name              String
+  description       String?
+  color             String?
+  frequency         Frequency  @default(DAILY)
+  frequencyInterval Int        @default(1)
+  goal              String
+  userId            Int
+  user              TeamUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs              HabitLog[]
+  startDate         DateTime   @default(now()) @db.Date
+  endDate           DateTime?  @db.Date
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model HabitLog {
+  id        String   @id @default(cuid()) // Unique identifier for the log entry
+  date      DateTime @db.Date // The specific date the habit was completed. @db.Date stores only the date part.
+  completed Boolean  @default(true) // Status of the habit on this date
+  notes     String? // Optional: Any notes for this specific log entry
+  habitId   Int
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
 }

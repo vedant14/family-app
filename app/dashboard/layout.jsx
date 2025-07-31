@@ -24,6 +24,7 @@ const data = {
   ],
   navTeam: [
     { title: "Teams Space", url: "manage-team", icon: IconUsers },
+    { title: "Habits", url: "habits", icon: IconUsers },
     { title: "Sources", url: "sources", icon: IconFilterCheck },
     { title: "Categories", url: "categories", icon: IconCategory2 },
     { title: "Budgets", url: "budgets", icon: IconCalendarDollar },
