@@ -3,14 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model Team {
   id        Int        @id @default(autoincrement())
   name      String?
-  users     TeamUser[] // Many-to-many relationship via TeamUser
+  users     TeamUser[]
   Category  Category[]
   createdAt DateTime   @default(now())
   updatedAt DateTime?  @updatedAt
@@ -26,7 +26,7 @@ model User {
   refreshToken String
   tokenExpiry  DateTime
   picture      String?
-  teams        TeamUser[] // Many-to-many relationship via TeamUser
+  teams        TeamUser[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime?  @updatedAt
 }
@@ -43,17 +43,18 @@ model TeamUser {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime? @updatedAt
 
-  @@unique([teamId, userId]) // Ensures a user can't join the same team twice
+  @@unique([teamId, userId])
 }
 
 model Ledger {
   id                     Int              @id @default(autoincrement())
   date                   DateTime
-  userId                 Int
-  user                   TeamUser         @relation(fields: [userId], references: [id])
+  teamUserId             Int
+  teamUser               TeamUser         @relation(fields: [teamUserId], references: [id])
   emailSubject           String?
   body                   String?
-  amountExtract          Float?
+  amountExtract          Decimal?         @db.Decimal(10, 2)
+  currency               String           @default("INR")
   payeeExtract           String?
   categoryId             Int?
   category               Category?        @relation(fields: [categoryId], references: [id])
@@ -72,8 +73,8 @@ model Source {
   sourceName        String
   sourceType        SourceType       @default(MAIL)
   query             String?
-  user              TeamUser         @relation(fields: [userId], references: [id])
-  userId            Int
+  teamUser          TeamUser         @relation(fields: [teamUserId], references: [id])
+  teamUserId        Int
   amountRegex       String?
   amountRegexBackup String?
   payeeRegex        String?
@@ -128,21 +129,26 @@ model TagsOnLedgers {
   ledger     Ledger   @relation(fields: [ledgerId], references: [id])
   tag        Tag      @relation(fields: [tagId], references: [id])
 
-  @@id([ledgerId, tagId]) // Use composite primary key
+  @@id([ledgerId, tagId])
 }
 
 model Category {
-  id           Int       @id @default(autoincrement())
-  categoryName String
-  teamId       Int
-  isDontTrack  Boolean   @default(false)
-  isInvestment Boolean   @default(false)
-  colorCode    String?
-  team         Team      @relation(fields: [teamId], references: [id])
-  ledgers      Ledger[]
-  sources      Source[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  id            Int        @id @default(autoincrement())
+  categoryName  String
+  teamId        Int
+  isDontTrack   Boolean    @default(false)
+  isInvestment  Boolean    @default(false)
+  colorCode     String?
+  team          Team       @relation(fields: [teamId], references: [id])
+  ledgers       Ledger[]
+  sources       Source[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime?  @updatedAt
+  parentId      Int?
+  parent        Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  subCategories Category[] @relation("SubCategories")
+
+  @@unique([teamId, categoryName])
 }
 
 enum TransactionType {
@@ -165,20 +171,22 @@ model Habit {
   frequency         Frequency  @default(DAILY)
   frequencyInterval Int        @default(1)
   goal              String
-  userId            Int
-  user              TeamUser   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamUserId        Int
+  teamUser          TeamUser   @relation(fields: [teamUserId], references: [id], onDelete: Cascade)
   logs              HabitLog[]
   startDate         DateTime   @default(now()) @db.Date
   endDate           DateTime?  @db.Date
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
+  completed         Boolean    @default(true)
+  value             Float?
 }
 
 model HabitLog {
-  id        String   @id @default(cuid()) // Unique identifier for the log entry
-  date      DateTime @db.Date // The specific date the habit was completed. @db.Date stores only the date part.
-  completed Boolean  @default(true) // Status of the habit on this date
-  notes     String? // Optional: Any notes for this specific log entry
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  completed Boolean  @default(true)
+  notes     String?
   habitId   Int
   habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
 

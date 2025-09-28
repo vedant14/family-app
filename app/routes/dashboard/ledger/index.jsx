@@ -22,12 +22,9 @@ import {
 import { Calendar } from "~/components/ui/calendar"; 
 import { Button } from "~/components/ui/button"; 
 import { cn } from "~/lib/utils"; 
-import { CategoryFilter } from "./ledger/filtersCategories";
-import { FilterTags } from "./ledger/filterTags";
-import { LedgerTable } from "./ledger/ledgerRow";
-// -----------------------------------
-
-// Get initial date range for loader and state init
+import { CategoryFilter } from "./filtersCategories";
+import { FilterTags } from "./filterTags";
+import { LedgerTable } from "./ledgerRow";
 function getInitialDateRange() {
   const nowUTC = new Date();
   const nowForUTC = new Date(nowUTC.toISOString());
